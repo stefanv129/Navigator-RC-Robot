@@ -1,0 +1,7 @@
+"./BM_Drivers/Src/F401RE_GPIO.o"
+"./BM_Drivers/Src/F401RE_RCC.o"
+"./BM_Drivers/Src/F401RE_TIMER.o"
+"./Src/main.o"
+"./Src/syscalls.o"
+"./Src/sysmem.o"
+"./Startup/startup_stm32f401retx.o"

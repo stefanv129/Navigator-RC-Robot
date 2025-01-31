@@ -1,0 +1,2 @@
+../BM_Drivers/Src/F401RE_GPIO.c:13:6:GPIO_WriteToOutputPin	16	static
+../BM_Drivers/Src/F401RE_GPIO.c:17:6:GPIO_ToggleOutputPin_PWM	16	static
