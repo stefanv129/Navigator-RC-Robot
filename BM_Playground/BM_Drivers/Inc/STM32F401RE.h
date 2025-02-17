@@ -24,14 +24,14 @@
 /* v ADDRESSES DEFINED HERE v */
 
 //AHB1vvv
-#define BASEADDR_AHB1	(uint32_t)0x4002_0000U
+#define BASEADDR_AHB1	((uint32_t)0x40020000U)
 //GPIOS
-#define BASEADDR_GPIO_A (uint32_t)0x4002_0000U
-#define BASEADDR_GPIO_B (uint32_t)0x4002_0400U
-#define BASEADDR_GPIO_C (uint32_t)0x4002_0800U
-#define BASEADDR_GPIO_D (uint32_t)0x4002_0C00U
-#define BASEADDR_GPIO_E (uint32_t)0x4002_1000U
-#define BASEADDR_GPIO_H (uint32_t)0x4002_C000U
+#define BASEADDR_GPIO_A	(BASEADDR_AHB1 + 0x0000)
+#define BASEADDR_GPIO_B (BASEADDR_AHB1 + 0x0400)
+#define BASEADDR_GPIO_C (BASEADDR_AHB1 + 0x0800)
+#define BASEADDR_GPIO_D (BASEADDR_AHB1 + 0x0C00)
+#define BASEADDR_GPIO_E (BASEADDR_AHB1 + 0x1000)
+#define BASEADDR_GPIO_H (BASEADDR_AHB1 + 0x1400)
 
 typedef struct{
 	__vl uint32_t MODER;
@@ -45,14 +45,15 @@ typedef struct{
 	__vl uint32_t AFR[2];
 
 }GPIO_RegDef_t;
-#define GPIO_A   ((GPIO_RegDef_t *) BASEADDR_GPIO_A)
-#define GPIO_B   ((GPIO_RegDef_t *) BASEADDR_GPIO_B)
-#define GPIO_C   ((GPIO_RegDef_t *) BASEADDR_GPIO_C)
-#define GPIO_D   ((GPIO_RegDef_t *) BASEADDR_GPIO_D)
-#define GPIO_E   ((GPIO_RegDef_t *) BASEADDR_GPIO_E)
-#define GPIO_H   ((GPIO_RegDef_t *) BASEADDR_GPIO_H)
+
+#define GPIOA   ((GPIO_RegDef_t *) BASEADDR_GPIO_A)
+#define GPIOB   ((GPIO_RegDef_t *) BASEADDR_GPIO_B)
+#define GPIOC   ((GPIO_RegDef_t *) BASEADDR_GPIO_C)
+#define GPIOD   ((GPIO_RegDef_t *) BASEADDR_GPIO_D)
+#define GPIOE   ((GPIO_RegDef_t *) BASEADDR_GPIO_E)
+#define GPIOH   ((GPIO_RegDef_t *) BASEADDR_GPIO_H)
 //RCC
-#define BASEADDR_RCC 	(uint32_t)0x4002_3800U
+#define BASEADDR_RCC 	(BASEADDR_AHB1 + 0x3800)
 
 typedef struct{
 	__vl uint32_t CR;
@@ -85,6 +86,8 @@ typedef struct{
 	__vl uint32_t DCKCFGR;
 }RCC_RegDef_t;
 
+#define RCC    ((RCC_RegDef_t*)BASEADDR_RCC)
+
 //AHB1^^^
 
 //AHB2vvv
@@ -94,10 +97,10 @@ typedef struct{
 //APB1vvv
 #define BASEADDR_APB1  (uint32_t) 0x4000_0000U
 //TIMERS
-#define BASEADDR_TIM_2 (uint32_t)0x4000_0000U
-#define BASEADDR_TIM_3 (uint32_t)0x4002_0400U
-#define BASEADDR_TIM_4 (uint32_t)0x4002_0800U
-#define BASEADDR_TIM_5 (uint32_t)0x4002_0C00U
+#define BASEADDR_TIM_2 (BASEADDR_APB1 + 0x0000)
+#define BASEADDR_TIM_3 (BASEADDR_APB1 + 0x0400)
+#define BASEADDR_TIM_4 (BASEADDR_APB1 + 0x0800)
+#define BASEADDR_TIM_5 (BASEADDR_APB1 + 0x0C00)
 
 typedef struct{
 	__vl uint32_t CR1;
@@ -121,7 +124,9 @@ typedef struct{
 	__vl uint32_t DMAR;
 	__vl uint32_t TIM2_OR;
 	__vl uint32_t TIM5_OR;
-}TIM2_5_RegDef_t;//general purpose timer
+}GP_TIM_RegDef_t;//general purpose timer
+
+#define TIM2	((GP_TIM_RegDef_t *)BASEADDR_TIM_2)
 
 //SPIs
 #define BASEADDR_SPI_2 (uint32_t)0x4000_3800U
@@ -133,12 +138,35 @@ typedef struct{
 //APB1^^^
 
 //APB2vvv
-#define BASEADDR_APB2	 (uint32_t)0x4001_0000U
+#define BASEADDR_APB2	 (uint32_t)0x40010000U
 //TIMERS
-#define BASEADDR_TIM_1 	 (uint32_t)0x4001_0000U
-#define BASEADDR_TIM_9   (uint32_t)0x4001_4000U
-#define BASEADDR_TIM_10  (uint32_t)0x4002_4400U
-#define BASEADDR_TIM_11  (uint32_t)0x4002_4800U
+#define BASEADDR_TIM_1 	 (BASEADDR_APB2 + 0x0000)
+typedef struct{
+	__vl uint32_t CR1;
+	__vl uint32_t CR2;
+	__vl uint32_t SMCR;
+	__vl uint32_t DIER;
+	__vl uint32_t SR;
+	__vl uint32_t EGR;
+	__vl uint32_t CCMR1;
+	__vl uint32_t CCMR2;
+	__vl uint32_t CCER;
+	__vl uint32_t CNT;
+	__vl uint32_t PSC;
+	__vl uint32_t ARR;
+	__vl uint32_t RCR;
+	__vl uint32_t CCR1;
+	__vl uint32_t CCR2;
+	__vl uint32_t CCR3;
+	__vl uint32_t CCR4;
+	__vl uint32_t BDTR;
+	__vl uint32_t DCR;
+	__vl uint32_t DMAR;
+}AD_TIM_RegDef_t;//ADVANCED CONTROL timer
+
+
+#define TIM1	((AD_TIM_RegDef_t *)BASEADDR_TIM_1)
+
 //USARTs
 #define BASEADDR_USART_1 (uint32_t)0x4001_1000U
 #define BASEADDR_USART_6 (uint32_t)0x4001_1400U
@@ -154,18 +182,6 @@ typedef struct{
 
 
 /* v STRUCTS DEFINED HERE v */
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
