@@ -29,18 +29,16 @@ typedef struct{
 
 typedef struct{
 	SYSCLK_Src_t CLK_Source;
-	PLL_Factors_t PLL_Facs;
+	PLL_Factors_t PLL_Factors;
 	Bus_Prescalers_t Prescalers;
 }RCC_Config_t;
 
 typedef struct{
-	RCC_RegDef_t *pRCC;
+	RCC_RegDef_t *pRCC; //THERE IS ONLY ONE RCC?
 	RCC_Config_t RCC_Config;
 }RCC_Handle_t;
 
 void RCC_Clock_Config(RCC_Handle_t *pRCC_Handle_t);
-
-
 
 
 
