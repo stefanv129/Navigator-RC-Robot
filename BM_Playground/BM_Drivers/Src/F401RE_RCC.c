@@ -20,16 +20,14 @@ void RCC_Clock_Config(RCC_Handle_t *pRCC_Handle_t) {
 	{
 		RCC->CR |= RCC_CR_HSION;
 		while (!(RCC->CR & RCC_CR_HSIRDY));// 1. Enable HSI
-
-
 	}
 	else if(pRCC_Handle_t->RCC_Config.CLK_Source == PLLCLK)
 	{
 		// 2. Configure the PLL
-		RCC->PLLCFGR = (16 << RCC_PLLCFGR_PLLM_Pos) |  // M = 16
-				(400 << RCC_PLLCFGR_PLLN_Pos) |  // N = 400
-				(0x2 << RCC_PLLCFGR_PLLP_Pos) |  // P = 8 (00: /2, 01: /4, 10: /8, 11: /16)
-				(RCC_PLLCFGR_PLLSRC_HSI);        // HSI as PLL source
+		RCC->PLLCFGR = (16 << RCC_PLLCFGR_PLLM_Pos) |  // M = 16 5:0 bits
+				(400 << RCC_PLLCFGR_PLLN_Pos) |  // N = 400 14:6 bits
+				(0x2 << RCC_PLLCFGR_PLLP_Pos) |  // P = 8 (00: /2, 01: /4, 10: /8, 11: /16) 17:16 bits
+				(RCC_PLLCFGR_PLLSRC_HSI);        // HSI as PLL source 22 bit
 		// 3. Enable the PLL
 		RCC->CR |= RCC_CR_PLLON;
 		while (!(RCC->CR & RCC_CR_PLLRDY)); // Wait until PLL is ready
@@ -45,22 +43,8 @@ void RCC_Clock_Config(RCC_Handle_t *pRCC_Handle_t) {
 	while (!(RCC->CR & RCC_CR_HSIRDY)); // Wait until HSI is ready
 
 
-
-
-
-
-
 	// 6. Update SystemCoreClock global variable (optional)
 	SystemCoreClockUpdate();
 }
 
-typedef struct{
-	SYSCLK_Src_t CLK_Source;
-	PLL_Factors_t PLL_Facs;
-	Bus_Prescalers_t Prescalers;
-}RCC_Config_t;
 
-typedef struct{
-	RCC_RegDef_t *pRCC;
-	RCC_Config_t RCC_Config;
-}RCC_Handle_t;
