@@ -26,8 +26,15 @@
 
 int main(void) {
 
-	//SYSCLK 84 MHz
-	//=>
+	//SYSCLK 50 MHz
+	RCC_Handle_t RCC_Handle;
+	RCC_Handle.pRCC = RCC;
+	RCC_Handle.RCC_Config.CLK_Source = HSI;
+	RCC_Handle.RCC_Config.Prescalers.AHB_Presc = 1;
+	RCC_Handle.RCC_Config.Prescalers.APB1_Presc = 2;
+	RCC_Handle.RCC_Config.Prescalers.APB2_Presc = 2;
+	//WILL NEED MACROS FOR BUS PRESC!!!
+	RCC_Clock_Config(&RCC_Handle);
 
     // TIM1 Configuration for PWM
     AD_TIM_Handle_t TIM1_CH1;
