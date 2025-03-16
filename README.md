@@ -1,2 +1,13 @@
 # Navigator-RC-Robot
 Bachelor Final Project - Navigator RC Robot for room cartography (using MCUs and sensors)
+
+Status Update 16/03/2025:
+-not much firmware was written recently, was focused on configuring and selecting correct hardware
+-caquired all necessary hardware for testing as well as crafting the robot
+-final project shall use a smaller "blackpill STM MCU" as it is more compact; firmware written for the Nucleo board is compatible
+
+-now need to write firmware for robot movement (rotation, speed control etc.) will be written first and tested, so Timer drivers are needed for PWM signals
+-trying to decide what language to use for the ESP32 board, thinking Arduino is good enough
+-after movement is tested will start with sensor drivers
+
+
