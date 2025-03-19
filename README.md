@@ -10,4 +10,10 @@ Status Update 16/03/2025:
 -trying to decide what language to use for the ESP32 board, thinking Arduino is good enough
 -after movement is tested will start with sensor drivers
 
+Status Update 19/03/2025:
+-polished functions wirtten for clock config, need to check them for bugs too
+-looking forward to testing the PWM signal 
+-it is expected to have a freq of 50 MHz if clock config was correct
+-GPIO and TIMER config can have bugs too
+
 
