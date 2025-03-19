@@ -11,7 +11,7 @@ Status Update 16/03/2025:
 -after movement is tested will start with sensor drivers
 
 Status Update 19/03/2025:
--polished functions wirtten for clock config, need to check them for bugs too
+-polished functions written for clock config, need to check them for bugs too
 -looking forward to testing the PWM signal 
 -it is expected to have a freq of 50 MHz if clock config was correct
 -GPIO and TIMER config can have bugs too
