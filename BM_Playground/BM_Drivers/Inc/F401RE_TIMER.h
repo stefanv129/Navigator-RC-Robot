@@ -18,6 +18,8 @@
 #define CH3	2
 #define CH4	3
 
+#define DutyCycle_80 80
+
 
 #define ACTIVE_HIGH	1
 #define UP_COUNTER  0
@@ -35,12 +37,12 @@ typedef enum{
 typedef struct{
 	uint8_t CH_Enabled;
 	CH_Mode_t CH_Mode;
-	uint8_t DutyCycle;
+	uint16_t DutyCycle;
 }AD_TIM_Channel_t;
 
 typedef struct{
-	uint8_t Prescaler;
-	uint8_t Period;//ARR value
+	uint16_t Prescaler;
+	uint16_t Period;//ARR value
 	uint8_t CounterMode;
 	uint8_t ClockDivision;
 	uint8_t RepetitionCounter;
@@ -57,6 +59,8 @@ typedef struct{
 }AD_TIM_Handle_t;
 
 
-void AD_TIM_INIT(AD_TIM_Handle_t *pAD_TIM_Handle);
+//void AD_TIM_INIT(AD_TIM_Handle_t *pAD_TIM_Handle);
+void AD_TIM_PWM_INIT(AD_TIM_Handle_t *pAD_TIM_Handle);
+void AD_TIM_PWM_Start(AD_TIM_Handle_t *pAD_TIM_Handle, uint8_t Channel);
 
 #endif /* INC_F401RE_TIMER_H_ */
