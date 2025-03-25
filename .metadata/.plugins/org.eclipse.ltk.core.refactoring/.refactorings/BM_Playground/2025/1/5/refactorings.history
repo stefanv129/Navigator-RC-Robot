@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;BM_Playground/BM_Drivers/Src/F401RE.c&apos; to &apos;F401RE_RCC.c&apos;" description="Rename resource &apos;F401RE.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="BM_Drivers/Src/F401RE.c" name="F401RE_RCC.c" stamp="1737969264256" updateReferences="true"/>
+</session>
