@@ -16,4 +16,12 @@ Status Update 19/03/2025:
 -it is expected to have a freq of 50 MHz if clock config was correct
 -GPIO and TIMER config can have bugs too
 
+Status Update 25/03/2025:
+-succesful PWM output tested today
+-RCC didnt need low frequency, Timer frequency can be configured via Period
+-now soldering wires to control the motors
+-will also need to write some API for motro control
+
+
+
 
