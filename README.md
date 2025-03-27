@@ -22,7 +22,7 @@ Status Update 25/03/2025:
 -now soldering wires to control the motors
 -will also need to write some API for motro control
 
-Status Update 25/03/2025:
+Status Update 27/03/2025:
 -soldered wires for the DC motors
 -changed timer for PWM outputs to TIM2
 -will need to test this too
