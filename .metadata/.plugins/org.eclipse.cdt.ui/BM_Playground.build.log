@@ -1,4 +1,4 @@
-17:59:22 **** Clean-only build of configuration Debug for project BM_Playground ****
+19:04:17 **** Clean-only build of configuration Debug for project BM_Playground ****
 make -j16 clean 
 rm -rf ./Startup/startup_stm32f401retx.d ./Startup/startup_stm32f401retx.o
 rm -rf ./Src/main.cyclo ./Src/main.d ./Src/main.o ./Src/main.su ./Src/syscalls.cyclo ./Src/syscalls.d ./Src/syscalls.o ./Src/syscalls.su ./Src/sysmem.cyclo ./Src/sysmem.d ./Src/sysmem.o ./Src/sysmem.su
@@ -6,5 +6,5 @@ rm -rf ./BM_Drivers/Src/F401RE_GPIO.cyclo ./BM_Drivers/Src/F401RE_GPIO.d ./BM_Dr
 rm -rf BM_Playground.elf BM_Playground.list BM_Playground.map default.size.stdout
  
 
-17:59:22 Build Finished. 0 errors, 0 warnings. (took 255ms)
+19:04:17 Build Finished. 0 errors, 0 warnings. (took 246ms)
 

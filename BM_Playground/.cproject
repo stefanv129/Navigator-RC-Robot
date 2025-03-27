@@ -74,8 +74,11 @@
 							<tool id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.objcopy.symbolsrec.1976955902" name="MCU Output Converter Motorola S-rec with symbols" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.objcopy.symbolsrec"/>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.1753739076.1497733461" name="MOVEMENT.c" rcbsApplicability="disable" resourcePath="BM_Drivers/Src/MOVEMENT.c" toolsToInvoke="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.1727742485.545081171">
+						<tool id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.1727742485.545081171" name="MCU GCC Compiler" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.1727742485"/>
+					</fileInfo>
 					<sourceEntries>
-						<entry excluding="Src/DRV8833.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="BM_Drivers"/>
+						<entry excluding="Src/MOVEMENT.c|Src/DRV8833.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="BM_Drivers"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Inc"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Src"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Startup"/>
