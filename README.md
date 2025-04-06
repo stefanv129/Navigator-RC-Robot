@@ -20,12 +20,17 @@ Status Update 25/03/2025:
 -succesful PWM output tested today
 -RCC didnt need low frequency, Timer frequency can be configured via Period
 -now soldering wires to control the motors
--will also need to write some API for motro control
+-will also need to write some API for motor control
 
 Status Update 27/03/2025:
 -soldered wires for the DC motors
 -changed timer for PWM outputs to TIM2
 -will need to test this too
+
+Status Update 06/03/2025:
+-added movement logic in MOVEMENT.c file 
+
+
 
 
 
