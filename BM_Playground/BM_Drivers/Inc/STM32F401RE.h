@@ -105,6 +105,7 @@ typedef struct{
 typedef struct{
 	__vl uint32_t CR1;
 	__vl uint32_t CR2;
+	__vl uint32_t SMCR; //why?
 	__vl uint32_t DIER;
 	__vl uint32_t SR;
 	__vl uint32_t EGR;

@@ -43,7 +43,7 @@ int main(void) {
 	GP_TIM_Handle_t TIM2_PWM;
 	TIM2_PWM.pTIMx = TIM2;
 	TIM2_PWM.GP_TIM_Config.Prescaler = 4;
-	TIM2_PWM.GP_TIM_Config.Period = 99;
+	TIM2_PWM.GP_TIM_Config.Period = 100;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Enabled = 1;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Enabled = 0;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Enabled = 0;
@@ -52,9 +52,9 @@ int main(void) {
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].DutyCycle = DutyCycle_80;  // 80% Duty
 
 	GP_TIM_PWM_INIT(&TIM2_PWM);
-	GP_TIM_PWM_Start(&TIM2_PWM, TIM2_PWM.GP_TIM_Config.CH_Setup);
+	GP_TIM_PWM_Start(&TIM2_PWM, CH1);
 
-	// GPIO Configuration for TIM1 CH1 (PA8)
+	// GPIO Configuration for TIM1 CH1 (PA0)
 	GPIO_Handle_t GpioCH1;
 	GpioCH1.pGPIOx = GPIOA;
 	GpioCH1.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_0;
