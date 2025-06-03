@@ -6,7 +6,7 @@
  */
 
 
-#include "DRV8833.h"
+#include "MOVEMENT.h"
 #include "F401RE_TIMER.h"
 
 
@@ -35,7 +35,7 @@ uint8_t choose_direction(){
 	uint8_t random_number = (rand() % (10 - 1 + 1)) + 1;
 	if(random_number > 5) return 1;
 	else return 0;
-}
+} //would rather turn right and left alternatively and usew random to calc he turn time => angle
 
 
 
@@ -56,7 +56,7 @@ void turn_RGT(AD_TIM_Handle_t *pGP_TIM_Handle){
 	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH3,GND);
 	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH2,GND);
 	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH4,PWM_OUTPUT);
-	//WAIT FOR CHANNEL 4
+	//WAIT FOR CHANNEL
 	pGP_TIM_Handle->pTIMx->CR1 |= (1 << 0);
 }
 

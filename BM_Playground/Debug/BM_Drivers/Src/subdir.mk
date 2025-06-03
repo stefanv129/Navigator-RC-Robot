@@ -7,17 +7,20 @@
 C_SRCS += \
 ../BM_Drivers/Src/F401RE_GPIO.c \
 ../BM_Drivers/Src/F401RE_RCC.c \
-../BM_Drivers/Src/F401RE_TIMER.c 
+../BM_Drivers/Src/F401RE_TIMER.c \
+../BM_Drivers/Src/MOVEMENT.c 
 
 OBJS += \
 ./BM_Drivers/Src/F401RE_GPIO.o \
 ./BM_Drivers/Src/F401RE_RCC.o \
-./BM_Drivers/Src/F401RE_TIMER.o 
+./BM_Drivers/Src/F401RE_TIMER.o \
+./BM_Drivers/Src/MOVEMENT.o 
 
 C_DEPS += \
 ./BM_Drivers/Src/F401RE_GPIO.d \
 ./BM_Drivers/Src/F401RE_RCC.d \
-./BM_Drivers/Src/F401RE_TIMER.d 
+./BM_Drivers/Src/F401RE_TIMER.d \
+./BM_Drivers/Src/MOVEMENT.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -27,7 +30,7 @@ BM_Drivers/Src/%.o BM_Drivers/Src/%.su BM_Drivers/Src/%.cyclo: ../BM_Drivers/Src
 clean: clean-BM_Drivers-2f-Src
 
 clean-BM_Drivers-2f-Src:
-	-$(RM) ./BM_Drivers/Src/F401RE_GPIO.cyclo ./BM_Drivers/Src/F401RE_GPIO.d ./BM_Drivers/Src/F401RE_GPIO.o ./BM_Drivers/Src/F401RE_GPIO.su ./BM_Drivers/Src/F401RE_RCC.cyclo ./BM_Drivers/Src/F401RE_RCC.d ./BM_Drivers/Src/F401RE_RCC.o ./BM_Drivers/Src/F401RE_RCC.su ./BM_Drivers/Src/F401RE_TIMER.cyclo ./BM_Drivers/Src/F401RE_TIMER.d ./BM_Drivers/Src/F401RE_TIMER.o ./BM_Drivers/Src/F401RE_TIMER.su
+	-$(RM) ./BM_Drivers/Src/F401RE_GPIO.cyclo ./BM_Drivers/Src/F401RE_GPIO.d ./BM_Drivers/Src/F401RE_GPIO.o ./BM_Drivers/Src/F401RE_GPIO.su ./BM_Drivers/Src/F401RE_RCC.cyclo ./BM_Drivers/Src/F401RE_RCC.d ./BM_Drivers/Src/F401RE_RCC.o ./BM_Drivers/Src/F401RE_RCC.su ./BM_Drivers/Src/F401RE_TIMER.cyclo ./BM_Drivers/Src/F401RE_TIMER.d ./BM_Drivers/Src/F401RE_TIMER.o ./BM_Drivers/Src/F401RE_TIMER.su ./BM_Drivers/Src/MOVEMENT.cyclo ./BM_Drivers/Src/MOVEMENT.d ./BM_Drivers/Src/MOVEMENT.o ./BM_Drivers/Src/MOVEMENT.su
 
 .PHONY: clean-BM_Drivers-2f-Src
 
