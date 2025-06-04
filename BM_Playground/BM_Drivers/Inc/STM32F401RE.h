@@ -95,7 +95,7 @@ typedef struct{
 //AHB2^^^
 
 //APB1vvv
-#define BASEADDR_APB1  (uint32_t) 0x4000_0000U
+#define BASEADDR_APB1  (uint32_t) 0x40000000U
 //TIMERS
 #define BASEADDR_TIM_2 (BASEADDR_APB1 + 0x0000)
 #define BASEADDR_TIM_3 (BASEADDR_APB1 + 0x0400)
@@ -105,6 +105,7 @@ typedef struct{
 typedef struct{
 	__vl uint32_t CR1;
 	__vl uint32_t CR2;
+	__vl uint32_t SMCR; //why?
 	__vl uint32_t DIER;
 	__vl uint32_t SR;
 	__vl uint32_t EGR;
