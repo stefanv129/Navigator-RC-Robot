@@ -30,6 +30,10 @@ Status Update 27/03/2025:
 Status Update 06/03/2025:
 -added movement logic in MOVEMENT.c file 
 
+Status Update 09/06/2025:
+-long time no see, focused on hardware for a while
+-migrated code and testing on the smaller Adafruit STM32F411 blackpill, which will be used in final implementation
+-managed to use TIM2 to output PWM signals on its 4 channels, perfect for my movement functions
 
 
 
