@@ -37,9 +37,9 @@ void RCC_Clock_Config(RCC_Handle_t *pRCC_Handle_t) {
 
 		// 2. Configure the PLL
 		pRCC_Handle_t->pRCC->PLLCFGR &= RCC_PLLCFGR_PLLSRC_HSI;  // Ensure HSI is selected as PLL source
-		pRCC_Handle_t->pRCC->PLLCFGR |= (pRCC_Handle_t->RCC_Config.PLL_Facs.PLL_M |
-				(pRCC_Handle_t->RCC_Config.PLL_Facs.PLL_N << 6) |
-				(pRCC_Handle_t->RCC_Config.PLL_Facs.PLL_P << 16));
+		pRCC_Handle_t->pRCC->PLLCFGR |= (pRCC_Handle_t->RCC_Config.PLL_Factors.PLL_M |
+				(pRCC_Handle_t->RCC_Config.PLL_Factors.PLL_N << 6) |
+				(pRCC_Handle_t->RCC_Config.PLL_Factors.PLL_P << 16));
 
 		// 3. Enable the PLL
 		pRCC_Handle_t->pRCC->CR |= RCC_CR_PLLON;

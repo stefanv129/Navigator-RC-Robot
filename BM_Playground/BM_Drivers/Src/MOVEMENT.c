@@ -40,7 +40,7 @@ uint8_t choose_direction(){
 
 
 //TREAT FUNCTIONS LIKE A STATE
-void drive_FWD(AD_TIM_Handle_t *pGP_TIM_Handle){
+void drive_FWD(GP_TIM_Handle_t *pGP_TIM_Handle){
 	pGP_TIM_Handle->pTIMx->CR1 &= ~(1 << 0);
 	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH1,PWM_OUTPUT);
 	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH3,PWM_OUTPUT);
@@ -50,7 +50,7 @@ void drive_FWD(AD_TIM_Handle_t *pGP_TIM_Handle){
 	pGP_TIM_Handle->pTIMx->CR1 |= (1 << 0);
 }
 
-void turn_RGT(AD_TIM_Handle_t *pGP_TIM_Handle){
+void turn_RGT(GP_TIM_Handle_t *pGP_TIM_Handle){
 	pGP_TIM_Handle->pTIMx->CR1 &= ~(1 << 0);
 	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH1,PWM_OUTPUT);
 	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH3,GND);
@@ -60,7 +60,7 @@ void turn_RGT(AD_TIM_Handle_t *pGP_TIM_Handle){
 	pGP_TIM_Handle->pTIMx->CR1 |= (1 << 0);
 }
 
-void turn_LFT(AD_TIM_Handle_t *pGP_TIM_Handle){
+void turn_LFT(GP_TIM_Handle_t *pGP_TIM_Handle){
 	pGP_TIM_Handle->pTIMx->CR1 &= ~(1 << 0);
 	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH1,GND);
 	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH3,PWM_OUTPUT);
@@ -72,8 +72,3 @@ void turn_LFT(AD_TIM_Handle_t *pGP_TIM_Handle){
 
 
 //CONTROL WILL WORK LIKE THIS, CAR ENTERS X STATE FOR Y TIME => Z TURN ANGLE
-
-
-
-
-

@@ -14,7 +14,9 @@ void GP_TIM_PWM_INIT(GP_TIM_Handle_t *pGP_TIM_Handle) {
 
 	if (pGP_TIM_Handle->pTIMx == TIM2) {
 		TIM2_PCLK_EN();
-	}//add other cases later
+	}else if(pGP_TIM_Handle->pTIMx == TIM3){
+		TIM3_PCLK_EN();
+	}
 	while (!(RCC->APB1ENR & (1 << 0))) {}
 	//WAIT A BIT
 
@@ -65,9 +67,9 @@ void GP_TIM_PWM_INIT(GP_TIM_Handle_t *pGP_TIM_Handle) {
 	//pGP_TIM_Handle->pTIMx->CR1 |= (1 << 0); NOT NECESSARY BEACUSE PWM START DOES IT
 }
 
-void GP_TIM_PWM_Start(AD_TIM_Handle_t *pGP_TIM_Handle, uint8_t channel) {
+void GP_TIM_PWM_Start(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t channel) {
 	// Enable the main output (MOE) for Advanced Timers (TIM1)
-	pGP_TIM_Handle->pTIMx->BDTR |= (1 << 15);  // MOE Bit in BDTR
+	//pGP_TIM_Handle->pTIMx->BDTR |= (1 << 15);  // MOE Bit in BDTR
 
 	// Enable the selected PWM channel
 	switch (channel) {
@@ -103,6 +105,3 @@ void GP_TIM_PWM_Change_State(GP_TIM_Handle_t *pTIM_Handle, uint8_t Channel, uint
 
 
 }
-
-
-

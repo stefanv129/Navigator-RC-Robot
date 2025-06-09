@@ -32,6 +32,6 @@ uint8_t calc_turn_time();
 uint8_t choose_direction();
 
 //move these to gpio file
-void drive_FWD(AD_TIM_Handle_t *pGP_TIM_Handle);//call by reference to not copy struct in stack
+void drive_FWD(GP_TIM_Handle_t *pGP_TIM_Handle);//call by reference to not copy struct in stack
 
 #endif /* INC_DRV8833_H_ */

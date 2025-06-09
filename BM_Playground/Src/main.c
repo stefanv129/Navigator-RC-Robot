@@ -28,8 +28,7 @@
 
 int main(void) {
 
-
-	uint8_t START = 0;
+	uint8_t START = 1;
 
 	RCC_Handle_t RCC_Handle;
 	RCC_Handle.pRCC = RCC;
@@ -48,18 +47,42 @@ int main(void) {
 	TIM2_PWM.pTIMx = TIM2;
 	TIM2_PWM.GP_TIM_Config.Prescaler = 4;
 	TIM2_PWM.GP_TIM_Config.Period = 100;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Enabled = 1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Enabled = 0;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Enabled = 0;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Enabled = 0;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Enabled = ENABLE;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Enabled = ENABLE;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Enabled = ENABLE;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Mode = PWM1;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].DutyCycle = DutyCycle_80;  // 80% Duty
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Mode = PWM1;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].DutyCycle = DutyCycle_80;  // 80% Duty
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Mode = PWM1;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].DutyCycle = DutyCycle_80;  // 80% Duty
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Mode = PWM1;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].DutyCycle = DutyCycle_80;  // 80% Duty
 
-	GP_TIM_PWM_INIT(&TIM2_PWM);
-    //GP_TIM_PWM_Start(&TIM2_PWM, CH1);
-	drive_FWD(&TIM2_PWM);//activate on start only
 
-	// GPIO Configuration for TIM1 CH1 (PA0)
+
+	// GPIO Configuration for TIM2 CH3 (PA2)
+	GPIO_Handle_t GpioCH3;
+	GpioCH3.pGPIOx = GPIOA;
+	GpioCH3.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_2;
+	GpioCH3.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
+	GpioCH3.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
+	GpioCH3.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	GpioCH3.GPIO_PinConfig.GPIO_PinAltFunMode = 1;  // AF1 for TIM2_PWM
+	GpioCH3.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+
+	// GPIO Configuration for TIM2 CH2 (PA1)
+	GPIO_Handle_t GpioCH2;
+	GpioCH2.pGPIOx = GPIOA;
+	GpioCH2.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_1;
+	GpioCH2.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
+	GpioCH2.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
+	GpioCH2.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	GpioCH2.GPIO_PinConfig.GPIO_PinAltFunMode = 1;  // AF1 for TIM2_PWM
+	GpioCH2.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+
+	// GPIO Configuration for TIM2 CH1 (PA0)
 	GPIO_Handle_t GpioCH1;
 	GpioCH1.pGPIOx = GPIOA;
 	GpioCH1.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_0;
@@ -69,10 +92,30 @@ int main(void) {
 	GpioCH1.GPIO_PinConfig.GPIO_PinAltFunMode = 1;  // AF1 for TIM2_PWM
 	GpioCH1.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
-
+	// GPIO Configuration for TIM2 CH4 (PA3)
+	GPIO_Handle_t GpioCH4;
+	GpioCH4.pGPIOx = GPIOA;
+	GpioCH4.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_3;
+	GpioCH4.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
+	GpioCH4.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
+	GpioCH4.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	GpioCH4.GPIO_PinConfig.GPIO_PinAltFunMode = 1;  // AF1 for TIM2_PWM
+	GpioCH4.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
 	// Initialize GPIO
+	GPIO_Init(&GpioCH3);
+	GPIO_Init(&GpioCH2);
 	GPIO_Init(&GpioCH1);
+	GPIO_Init(&GpioCH4);
+
+	// Initialize TIM2 + CHANNELS
+	GP_TIM_PWM_INIT(&TIM2_PWM);
+	GP_TIM_PWM_Start(&TIM2_PWM, CH3);
+	GP_TIM_PWM_Start(&TIM2_PWM, CH2);
+	GP_TIM_PWM_Start(&TIM2_PWM, CH1);
+	GP_TIM_PWM_Start(&TIM2_PWM, CH4);
+	//drive_FWD(&TIM2_PWM);//activate on start only
+
 
 	/* Loop forever */
 	//an ISR should set START to 1, another should set it to 0

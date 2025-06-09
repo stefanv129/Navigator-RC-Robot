@@ -13,6 +13,7 @@
 
 #define TIM1_PCLK_EN()		(RCC->APB2ENR |= (1 << 0))
 #define TIM2_PCLK_EN()		(RCC->APB1ENR |= (1 << 0))
+#define TIM3_PCLK_EN()		(RCC->APB1ENR |= (1 << 1))
 
 #define CH1	0
 #define CH2	1
@@ -83,6 +84,6 @@ typedef struct{
 }GP_TIM_Handle_t;
 
 void GP_TIM_PWM_INIT(GP_TIM_Handle_t *pGP_TIM_Handle);
-void GP_TIM_PWM_Start(AD_TIM_Handle_t *pGPTIM_Handle, uint8_t channel);
+void GP_TIM_PWM_Start(GP_TIM_Handle_t *pGPTIM_Handle, uint8_t channel);
 void GP_TIM_PWM_Change_State(GP_TIM_Handle_t *pTIM_Handle, uint8_t Channel, uint8_t State);
 #endif /* INC_F401RE_TIMER_H_ */

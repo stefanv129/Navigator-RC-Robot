@@ -128,6 +128,7 @@ typedef struct{
 }GP_TIM_RegDef_t;//general purpose timer
 
 #define TIM2	((GP_TIM_RegDef_t *)BASEADDR_TIM_2)
+#define TIM3	((GP_TIM_RegDef_t *)BASEADDR_TIM_3)
 
 //SPIs
 #define BASEADDR_SPI_2 (uint32_t)0x4000_3800U
