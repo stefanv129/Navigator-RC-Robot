@@ -35,6 +35,15 @@ Status Update 09/06/2025:
 -migrated code and testing on the smaller Adafruit STM32F411 blackpill, which will be used in final implementation
 -managed to use TIM2 to output PWM signals on its 4 channels, perfect for my movement functions
 
+Status Update 11/06/2025:
+-for some reason PA1 and PA5 GPIOS give out VDD instead of TIM2 CH2 even though they are configured for AF01
+-had to use PB3 instead for that channel which is asymmetrical
+-hopefully no other needed pins have such problems, I will need I2C and UART
+-found a way to set and reset PWM outputs consistently
+-now the driveFWD function works as intended
+-some function and variable names could still be cleaner, more macros are needed
+-didnt stick to a writing convention :(((
+
 
 
 
