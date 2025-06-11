@@ -11,97 +11,103 @@
 
 //TIM2 exclusivelyy used for PWM outputs now
 void GP_TIM_PWM_INIT(GP_TIM_Handle_t *pGP_TIM_Handle) {
-
+	// Enable peripheral clock
 	if (pGP_TIM_Handle->pTIMx == TIM2) {
 		TIM2_PCLK_EN();
-	}else if(pGP_TIM_Handle->pTIMx == TIM3){
+	} else if (pGP_TIM_Handle->pTIMx == TIM3) {
 		TIM3_PCLK_EN();
 	}
+
+	// Wait until peripheral clock is stable
 	while (!(RCC->APB1ENR & (1 << 0))) {}
-	//WAIT A BIT
 
-	// Enable Auto-Reload Preload (ARPE)
-	pGP_TIM_Handle->pTIMx->CR1 |= (1 << 7);  // ARPE: Auto-Reload Preload Enable
-
-	// Set Prescaler & Auto-Reload Value
+	// Timer base configuration
+	pGP_TIM_Handle->pTIMx->CR1 |= TIM_CR1_ARPE;  // Enable Auto-Reload Preload
 	pGP_TIM_Handle->pTIMx->PSC = pGP_TIM_Handle->GP_TIM_Config.Prescaler;
-	pGP_TIM_Handle->pTIMx->ARR = (pGP_TIM_Handle->GP_TIM_Config.Period - 1);  // Frequency
+	pGP_TIM_Handle->pTIMx->ARR = pGP_TIM_Handle->GP_TIM_Config.Period - 1;
 
-	// Configure PWM Channels
+	// Configure all channels using the unified function
 	for (int ch = 0; ch < 4; ch++) {
-		if (pGP_TIM_Handle->GP_TIM_Config.CH_Setup[ch].CH_Enabled) {
-			uint16_t dutyCycle = pGP_TIM_Handle->GP_TIM_Config.CH_Setup[ch].DutyCycle;
-			dutyCycle = (uint16_t)(((float)dutyCycle / 100) * pGP_TIM_Handle->GP_TIM_Config.Period); // ex.(50/100)
-			//79 result here
-			switch (ch) {
-			case CH1:
-				pGP_TIM_Handle->pTIMx->CCR1 = dutyCycle;
-				pGP_TIM_Handle->pTIMx->CCMR1 &= ~(7 << 4);
-				pGP_TIM_Handle->pTIMx->CCMR1 |= (pGP_TIM_Handle->GP_TIM_Config.CH_Setup[ch].CH_Mode == PWM1) ? (6 << 4) : (7 << 4);
-				pGP_TIM_Handle->pTIMx->CCMR1 |= (1 << 3); // Enable Output Compare Preload
-				break;
+		float duty_percent = pGP_TIM_Handle->GP_TIM_Config.CH_Setup[ch].DutyCycle;
+		uint16_t duty = (uint16_t)((duty_percent / 100.0f) * pGP_TIM_Handle->GP_TIM_Config.Period);
+		uint8_t mode = pGP_TIM_Handle->GP_TIM_Config.CH_Setup[ch].CH_Mode;
+		uint8_t enabled = pGP_TIM_Handle->GP_TIM_Config.CH_Setup[ch].CH_Enabled;
 
-			case CH2:
-				pGP_TIM_Handle->pTIMx->CCR2 = dutyCycle;
-				pGP_TIM_Handle->pTIMx->CCMR1 &= ~(7 << 12);
-				pGP_TIM_Handle->pTIMx->CCMR1 |= (pGP_TIM_Handle->GP_TIM_Config.CH_Setup[ch].CH_Mode == PWM1) ? (6 << 12) : (7 << 12);
-				pGP_TIM_Handle->pTIMx->CCMR1 |= (1 << 11); // Enable Output Compare Preload
-				break;
+		GP_TIM_SetChannel(pGP_TIM_Handle, ch, duty, mode, enabled);
+	}
 
-			case CH3:
-				pGP_TIM_Handle->pTIMx->CCR3 = dutyCycle;
-				pGP_TIM_Handle->pTIMx->CCMR2 &= ~(7 << 4);
-				pGP_TIM_Handle->pTIMx->CCMR2 |= (pGP_TIM_Handle->GP_TIM_Config.CH_Setup[ch].CH_Mode == PWM1) ? (6 << 4) : (7 << 4);
-				pGP_TIM_Handle->pTIMx->CCMR2 |= (1 << 3); // Enable Output Compare Preload
-				break;
+	// Force update to load all values
+	pGP_TIM_Handle->pTIMx->EGR |= (1 << 0);
 
-			case CH4:
-				pGP_TIM_Handle->pTIMx->CCR4 = dutyCycle;
-				pGP_TIM_Handle->pTIMx->CCMR2 &= ~(7 << 12);
-				pGP_TIM_Handle->pTIMx->CCMR2 |= (pGP_TIM_Handle->GP_TIM_Config.CH_Setup[ch].CH_Mode == PWM1) ? (6 << 12) : (7 << 12);
-				pGP_TIM_Handle->pTIMx->CCMR2 |= (1 << 11); // Enable Output Compare Preload
-				break;
-			}
+}
+
+void GP_TIM_SetChannel(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t ch, uint16_t duty, uint8_t mode, uint8_t enable_output) {
+	volatile uint32_t *ccmr = (ch < 2) ? &pGP_TIM_Handle->pTIMx->CCMR1 : &pGP_TIM_Handle->pTIMx->CCMR2;
+	volatile uint32_t *ccr;
+	uint8_t shift;
+	uint32_t enable_bit;
+
+	switch (ch) {
+	case CH1: ccr = &pGP_TIM_Handle->pTIMx->CCR1; shift = 4; enable_bit = 1 << 0; break;
+	case CH2: ccr = &pGP_TIM_Handle->pTIMx->CCR2; shift = 12; enable_bit = 1 << 4; break;
+	case CH3: ccr = &pGP_TIM_Handle->pTIMx->CCR3; shift = 4; enable_bit = 1 << 8; break;
+	case CH4: ccr = &pGP_TIM_Handle->pTIMx->CCR4; shift = 12; enable_bit = 1 << 12; break;
+	default: return;
+	}
+
+	*ccr = duty;
+
+	// Clear and set output compare mode (PWM1 or PWM2)
+	*ccmr &= ~(7 << shift);
+	*ccmr |= (mode == PWM1 ? 6 : 7) << shift;
+
+	// Enable preload
+	*ccmr |= (1 << (shift - 1));
+
+	// Only enable output if requested
+	if (enable_output) {
+		pGP_TIM_Handle->pTIMx->CCER |= enable_bit;
+	} else {
+		pGP_TIM_Handle->pTIMx->CCER &= ~enable_bit;
+	}
+}
+
+void GP_TIM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t EN_or_DS) {
+	if (EN_or_DS == ENABLE) {
+		pGP_TIM_Handle->pTIMx->CR1 |= TIM_CR1_CEN;
+	} else {
+		pGP_TIM_Handle->pTIMx->CR1 &= ~TIM_CR1_CEN;
+	}
+}
+
+void GP_TIM_PWM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t channel, uint8_t PWM_ON) {
+	if (channel > 3) return;
+
+	uint32_t ccer_mask = (1 << (channel * 4)); // CCxE bit
+
+	if (PWM_ON) {
+		// Make sure duty is set first
+		uint16_t duty = (uint16_t)((pGP_TIM_Handle->GP_TIM_Config.CH_Setup[channel].DutyCycle / 100.0f) *
+				pGP_TIM_Handle->GP_TIM_Config.Period);
+		switch(channel) {
+		case CH1: pGP_TIM_Handle->pTIMx->CCR1 = duty; break;
+		case CH2: pGP_TIM_Handle->pTIMx->CCR2 = duty; break;
+		case CH3: pGP_TIM_Handle->pTIMx->CCR3 = duty; break;
+		case CH4: pGP_TIM_Handle->pTIMx->CCR4 = duty; break;
 		}
-	}
-	//pGP_TIM_Handle->pTIMx->CR1 |= (1 << 0); NOT NECESSARY BEACUSE PWM START DOES IT
-}
 
-void GP_TIM_PWM_Start(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t channel) {
-	// Enable the main output (MOE) for Advanced Timers (TIM1)
-	//pGP_TIM_Handle->pTIMx->BDTR |= (1 << 15);  // MOE Bit in BDTR
-
-	// Enable the selected PWM channel
-	switch (channel) {
-	case CH1:
-		pGP_TIM_Handle->pTIMx->CCER |= (1 << 0);  // Enable CH1 (CC1E)
-		break;
-	case CH2:
-		pGP_TIM_Handle->pTIMx->CCER |= (1 << 4);  // Enable CH2 (CC2E)
-		break;
-	case CH3:
-		pGP_TIM_Handle->pTIMx->CCER |= (1 << 8);  // Enable CH3 (CC3E)
-		break;
-	case CH4:
-		pGP_TIM_Handle->pTIMx->CCER |= (1 << 12); // Enable CH4 (CC4E)
-		break;
-
-		// Enable the Timer Counter (CEN Bit)
-		pGP_TIM_Handle->pTIMx->CR1 |= (1 << 0);  // Start the Timer (CEN Bit)
-	}
-}
-
-void GP_TIM_PWM_Change_State(GP_TIM_Handle_t *pTIM_Handle, uint8_t Channel, uint8_t State){
-	//briefly disable timer
-	//0 1 2 3
-	if(State == PWM_OUTPUT){
-		pTIM_Handle->pTIMx->CCER |= (1 << (Channel * 4));  // Enable CH (CC1E)
-		//ADD WAIT
-	}
-	else{
-		pTIM_Handle->pTIMx->CCER &= ~(1 << (Channel * 4));  // Ground CH (CC1E)
-		//ADD WAIT
+		pGP_TIM_Handle->pTIMx->CCER |= ccer_mask; // Enable output
+	} else {
+		uint16_t duty = 0;
+		//switch(channel) {
+		//case CH1: pGP_TIM_Handle->pTIMx->CCR1 = duty; break;
+		//case CH2: pGP_TIM_Handle->pTIMx->CCR2 = duty; break;
+		//case CH3: pGP_TIM_Handle->pTIMx->CCR3 = duty; break;
+		//case CH4: pGP_TIM_Handle->pTIMx->CCR4 = duty; break;
+		//}
+		pGP_TIM_Handle->pTIMx->CCER &= ~ccer_mask; // Disable output
 	}
 
 
 }
+

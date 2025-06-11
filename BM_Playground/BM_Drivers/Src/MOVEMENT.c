@@ -41,33 +41,34 @@ uint8_t choose_direction(){
 
 //TREAT FUNCTIONS LIKE A STATE
 void drive_FWD(GP_TIM_Handle_t *pGP_TIM_Handle){
-	pGP_TIM_Handle->pTIMx->CR1 &= ~(1 << 0);
-	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH1,PWM_OUTPUT);
-	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH3,PWM_OUTPUT);
-	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH2,GND);
-	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH4,GND);
-	//WAIT FOR CHANNEL 4
-	pGP_TIM_Handle->pTIMx->CR1 |= (1 << 0);
+	//GP_TIM_Control(pGP_TIM_Handle, DISABLE);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,PWM_OUTPUT);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH3,PWM_OUTPUT);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH2,PWM_OFF);//this doesnt stop pwm output...
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,PWM_OFF);
+	//GP_TIM_Control(pGP_TIM_Handle, ENABLE);
 }
 
 void turn_RGT(GP_TIM_Handle_t *pGP_TIM_Handle){
 	pGP_TIM_Handle->pTIMx->CR1 &= ~(1 << 0);
-	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH1,PWM_OUTPUT);
-	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH3,GND);
-	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH2,GND);
-	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH4,PWM_OUTPUT);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,PWM_OUTPUT);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH3,GND);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH2,GND);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,PWM_OUTPUT);
 	//WAIT FOR CHANNEL
 	pGP_TIM_Handle->pTIMx->CR1 |= (1 << 0);
 }
 
 void turn_LFT(GP_TIM_Handle_t *pGP_TIM_Handle){
-	pGP_TIM_Handle->pTIMx->CR1 &= ~(1 << 0);
-	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH1,GND);
-	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH3,PWM_OUTPUT);
-	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH2,PWM_OUTPUT);
-	GP_TIM_PWM_Change_State(pGP_TIM_Handle,CH4,GND);
+	//pGP_TIM_Handle->pTIMx->CR1 &= ~(1 << 0);
+	GP_TIM_Control(pGP_TIM_Handle, DISABLE);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,GND);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH3,PWM_OUTPUT);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH2,PWM_OUTPUT);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,GND);
 	//WAIT FOR CHANNEL 4
-	pGP_TIM_Handle->pTIMx->CR1 |= (1 << 0);
+	//pGP_TIM_Handle->pTIMx->CR1 |= (1 << 0);
+	GP_TIM_Control(pGP_TIM_Handle, ENABLE);
 }
 
 

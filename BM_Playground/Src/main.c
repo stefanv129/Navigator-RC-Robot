@@ -47,7 +47,7 @@ int main(void) {
 	TIM2_PWM.pTIMx = TIM2;
 	TIM2_PWM.GP_TIM_Config.Prescaler = 4;
 	TIM2_PWM.GP_TIM_Config.Period = 100;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Enabled = ENABLE;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Enabled = DISABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Enabled = ENABLE;
@@ -74,8 +74,8 @@ int main(void) {
 
 	// GPIO Configuration for TIM2 CH2 (PA1)
 	GPIO_Handle_t GpioCH2;
-	GpioCH2.pGPIOx = GPIOA;
-	GpioCH2.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_1;
+	GpioCH2.pGPIOx = GPIOB;
+	GpioCH2.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_3;
 	GpioCH2.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
 	GpioCH2.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
 	GpioCH2.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
@@ -109,13 +109,17 @@ int main(void) {
 	GPIO_Init(&GpioCH4);
 
 	// Initialize TIM2 + CHANNELS
-	GP_TIM_PWM_INIT(&TIM2_PWM);
-	GP_TIM_PWM_Start(&TIM2_PWM, CH3);
-	GP_TIM_PWM_Start(&TIM2_PWM, CH2);
-	GP_TIM_PWM_Start(&TIM2_PWM, CH1);
-	GP_TIM_PWM_Start(&TIM2_PWM, CH4);
-	//drive_FWD(&TIM2_PWM);//activate on start only
+	//
 
+	GP_TIM_PWM_INIT(&TIM2_PWM);  // Initialize with CH1 disabled
+	GP_TIM_PWM_Control(&TIM2_PWM,CH1,PWM_OUTPUT);
+	// First set the duty cycle (important when enabling later)
+	GP_TIM_Control(&TIM2_PWM, ENABLE);  // Start the timer
+	GP_TIM_PWM_Control(&TIM2_PWM,CH2,PWM_OUTPUT);
+	GP_TIM_PWM_Control(&TIM2_PWM,CH1,PWM_OFF);
+
+
+	drive_FWD(&TIM2_PWM);
 
 	/* Loop forever */
 	//an ISR should set START to 1, another should set it to 0
