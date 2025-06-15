@@ -30,16 +30,28 @@ int main(void) {
 
 	uint8_t START = 1;
 
+	// Testing LED Config
+	// GPIO Configuration for TIM2 CH4 (PA3)
+	GPIO_Handle_t GpioLED;
+	GpioLED.pGPIOx = GPIOC;
+	GpioLED.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_13;
+	GpioLED.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_OUT;
+	GpioLED.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
+	GpioLED.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	GpioLED.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+	GPIO_Init(&GpioLED);
+
+
+
 	RCC_Handle_t RCC_Handle;
 	RCC_Handle.pRCC = RCC;
 	RCC_Handle.RCC_Config.CLK_Source = HSI;
 	//RCC_Handle.RCC_Config.PLL_Facs.PLL_M = 16;
 	//RCC_Handle.RCC_Config.PLL_Facs.PLL_N = 400;
 	//RCC_Handle.RCC_Config.PLL_Facs.PLL_P = 3;
-	RCC_Handle.RCC_Config.Prescalers.AHB_Presc = AHB_DIV1;
-	RCC_Handle.RCC_Config.Prescalers.APB1_Presc = APB1_DIV2;
-	RCC_Handle.RCC_Config.Prescalers.APB2_Presc = APB2_DIV2;
-	//=> 8Mhz for peripherals, 16 for timers
+	RCC_Handle.RCC_Config.Prescalers.AHB_Presc = AHB_DIV1;//0x0
+	RCC_Handle.RCC_Config.Prescalers.APB1_Presc = APB1_DIV2;//0x4
+	RCC_Handle.RCC_Config.Prescalers.APB2_Presc = APB2_DIV2;//0x4
 	RCC_Clock_Config(&RCC_Handle);
 
 	// Timer Configuration
@@ -102,11 +114,16 @@ int main(void) {
 	GpioCH4.GPIO_PinConfig.GPIO_PinAltFunMode = 1;  // AF1 for TIM2_PWM
 	GpioCH4.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
+
+
+
 	// Initialize GPIO
 	GPIO_Init(&GpioCH3);
 	GPIO_Init(&GpioCH2);
 	GPIO_Init(&GpioCH1);
 	GPIO_Init(&GpioCH4);
+
+
 
 	// Initialize TIM2 + CHANNELS
 	//
@@ -121,11 +138,56 @@ int main(void) {
 
 	drive_FWD(&TIM2_PWM);
 
+
+	//	turn_RGT(&TIM2_PWM);
+	//
+	//	drive_FWD(&TIM2_PWM);
+	//	turn_LFT(&TIM2_PWM);
+
+
 	/* Loop forever */
 	//an ISR should set START to 1, another should set it to 0
 	while (START) {
-
+		//		switch (current_state) {
+		//		case SEARCH_STATE:
+		//			// drive forward
+		//			update_position();
+		//			break;
+		//
+		//		case TURN_STATE:
+		//			// nothing, wait for timer ISR to transition out
+		//			break;
+		//
+		//		case IDLE_STATE:
+		//			// optional
+		//			break;
+		//		}
+		GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
 	}
+
+	//SENSOR_ISR()
+	//STORE COORDINATES OF OBSTACLE (current coordinates + sensor distance)
+	//set increment_enable FALSE (turning happens in place)
+	//SEED GENERATOR VIA XY COORDS
+	//GEN RANDOM NUMBER IN GIVEN RANGE
+	//START COUNTDWN TIMER FOR RANDMOM AMOUNT
+	//CHOOSE RGT/LFT BASED ON RANDOM NUMBER
+	//=> turn_RGT()/turn_LFT()
+	//turning happens until timer expires
+
+	//TIMER_ISR()
+	//exit TURN_STATE
+	//receive new angle from giroscope
+	//set increment_enable TRUE
+	//drive_FWD()
+	//increment coordinates based on angle (in while loop maybe)
+
+
+	//COMMENTS/IMPROVEMENTS:
+	//X,Y coordinates should be global vars?
+	//a reset option might be needed for whole algorithm
+	//after init drive_fwd() is called directly
+	//then algorithm should start after first sensorISR
 
 	return 0;
 }

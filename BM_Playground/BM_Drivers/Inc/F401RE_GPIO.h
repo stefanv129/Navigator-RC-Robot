@@ -94,6 +94,6 @@ void GPIO_Init(GPIO_Handle_t *pGPIOHandle);
 void GPIO_DeInit(GPIO_RegDef_t *pGPIOx);
 
 
-void GPIO_WriteToOutputPin(GPIO_RegDef_t *pGPIOx,uint8_t PinNumber, uint8_t STATE);
-void GPIO_ToggleOutputPin_PWM(GPIO_RegDef_t *pGPIOx,uint8_t PinNumber, uint8_t PWM);
+void GPIO_Write_Pin(GPIO_RegDef_t *pGPIOx,uint8_t PinNumber, uint8_t STATE);
+void GPIO_Toggle_Pin(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber);
 #endif /* INC_F401RE_GPIO_H_ */

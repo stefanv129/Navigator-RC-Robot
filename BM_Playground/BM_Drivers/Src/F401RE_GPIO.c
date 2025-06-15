@@ -129,7 +129,15 @@ void GPIO_DeInit(GPIO_RegDef_t *pGPIOx)
 	}
 }
 
-void GPIO_WriteToOutputPin(GPIO_RegDef_t *pGPIOx,uint8_t PinNumber, uint8_t STATE){
-
+void GPIO_Write_Pin(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber, uint8_t STATE) {
+    if (STATE == SET) {
+        pGPIOx->ODR |= (1 << PinNumber);   // Set the pin
+    } else {
+        pGPIOx->ODR &= ~(1 << PinNumber);  // Clear the pin
+    }
 }
 
+void GPIO_Toggle_Pin(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber) {
+    if (PinNumber > 15) return;
+    pGPIOx->ODR ^= (1 << PinNumber);  // Toggle the bit
+}

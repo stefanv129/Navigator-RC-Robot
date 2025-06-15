@@ -86,6 +86,7 @@ typedef struct{
 	GP_TIM_Config_t GP_TIM_Config;
 }GP_TIM_Handle_t;
 
+void AD_TIM_Start_Countdown(AD_TIM_Handle_t *pAD_TIM_Handle, uint32_t time);
 void GP_TIM_PWM_INIT(GP_TIM_Handle_t *pGP_TIM_Handle);
 void GP_TIM_SetChannel(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t ch, uint16_t duty, uint8_t mode, uint8_t enable_output);
 void GP_TIM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t EN_or_DS);

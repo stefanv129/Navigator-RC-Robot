@@ -9,6 +9,13 @@
 
 #include "F401RE_TIMER.h"
 
+void AD_TIM_Start_Countdown(AD_TIM_Handle_t *pAD_TIM_Handle, uint32_t time){
+	//for general use
+	//trigger interrupt when countdown ends
+	//to use at beginning of turn states
+}
+
+
 //TIM2 exclusivelyy used for PWM outputs now
 void GP_TIM_PWM_INIT(GP_TIM_Handle_t *pGP_TIM_Handle) {
 	// Enable peripheral clock
@@ -98,7 +105,7 @@ void GP_TIM_PWM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t channel, uint8_
 
 		pGP_TIM_Handle->pTIMx->CCER |= ccer_mask; // Enable output
 	} else {
-		uint16_t duty = 0;
+		//uint16_t duty = 0;
 		//switch(channel) {
 		//case CH1: pGP_TIM_Handle->pTIMx->CCR1 = duty; break;
 		//case CH2: pGP_TIM_Handle->pTIMx->CCR2 = duty; break;
