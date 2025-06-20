@@ -1,3 +1,0 @@
-../BM_Drivers/Src/F401RE_TIMER.c:13:6:GP_TIM_PWM_INIT	32	static
-../BM_Drivers/Src/F401RE_TIMER.c:70:6:GP_TIM_PWM_Start	16	static
-../BM_Drivers/Src/F401RE_TIMER.c:94:6:GP_TIM_PWM_Change_State	16	static

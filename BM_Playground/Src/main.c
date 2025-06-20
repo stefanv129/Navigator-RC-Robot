@@ -39,7 +39,8 @@ int main(void) {
 	GpioLED.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
 	GpioLED.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
 	GpioLED.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
-	GPIO_Init(&GpioLED);
+
+	//GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
 
 
 
@@ -54,7 +55,9 @@ int main(void) {
 	RCC_Handle.RCC_Config.Prescalers.APB2_Presc = APB2_DIV2;//0x4
 	RCC_Clock_Config(&RCC_Handle);
 
-	// Timer Configuration
+
+
+	// GP Timer Configuration
 	GP_TIM_Handle_t TIM2_PWM;
 	TIM2_PWM.pTIMx = TIM2;
 	TIM2_PWM.GP_TIM_Config.Prescaler = 4;
@@ -67,11 +70,13 @@ int main(void) {
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].DutyCycle = DutyCycle_80;  // 80% Duty
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Mode = PWM1;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].DutyCycle = DutyCycle_80;  // 80% Duty
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].DutyCycle = DutyCycle_80;  // 80% Duty
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].DutyCycle = DutyCycle_80;  // 80% Duty
 
+	// AD Timer Configuration
+	AD_TIM_Handle_t TIM1_CDN;
+	TIM1_CDN.pTIMx = TIM1;
+	//TIM1_CDN.AD_TIM_Config.ClockDivision = 4;
+	TIM1_CDN.AD_TIM_Config.Prescaler = PRESCALER_16K;
+	AD_TIM_CDN_INIT(&TIM1_CDN);
 
 
 	// GPIO Configuration for TIM2 CH3 (PA2)
@@ -114,40 +119,28 @@ int main(void) {
 	GpioCH4.GPIO_PinConfig.GPIO_PinAltFunMode = 1;  // AF1 for TIM2_PWM
 	GpioCH4.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
-
-
-
 	// Initialize GPIO
 	GPIO_Init(&GpioCH3);
 	GPIO_Init(&GpioCH2);
 	GPIO_Init(&GpioCH1);
 	GPIO_Init(&GpioCH4);
-
+	GPIO_Init(&GpioLED); //turns led on
 
 
 	// Initialize TIM2 + CHANNELS
-	//
-
 	GP_TIM_PWM_INIT(&TIM2_PWM);  // Initialize with CH1 disabled
 	GP_TIM_PWM_Control(&TIM2_PWM,CH1,PWM_OUTPUT);
 	// First set the duty cycle (important when enabling later)
 	GP_TIM_Control(&TIM2_PWM, ENABLE);  // Start the timer
 	GP_TIM_PWM_Control(&TIM2_PWM,CH2,PWM_OUTPUT);
 	GP_TIM_PWM_Control(&TIM2_PWM,CH1,PWM_OFF);
-
-
 	drive_FWD(&TIM2_PWM);
 
-
-	//	turn_RGT(&TIM2_PWM);
-	//
-	//	drive_FWD(&TIM2_PWM);
-	//	turn_LFT(&TIM2_PWM);
 
 
 	/* Loop forever */
 	//an ISR should set START to 1, another should set it to 0
-	while (START) {
+	while (1) {
 		//		switch (current_state) {
 		//		case SEARCH_STATE:
 		//			// drive forward
@@ -162,6 +155,9 @@ int main(void) {
 		//			// optional
 		//			break;
 		//		}
+		//GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
+		AD_TIM_Start_Countdown(&TIM1_CDN, 2000);//gets stuck on first iteration
+
 		GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
 	}
 

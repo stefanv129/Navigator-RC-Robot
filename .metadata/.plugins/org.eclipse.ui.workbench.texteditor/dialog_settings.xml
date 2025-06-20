@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item key="selection" value="TIM2_PWM"/>
+		<item key="selection" value="GPIO_Toggle_Pin"/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="GPIO_Toggle_Pin"/>
+			<item value="TIM2"/>
 			<item value="TIM1_CH1"/>
 			<item value="AD_TIM_Channel_t"/>
 			<item value="MX_TIM1_Init"/>

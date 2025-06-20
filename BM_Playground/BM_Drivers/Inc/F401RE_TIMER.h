@@ -11,17 +11,22 @@
 #include "F401RE_GPIO.h"
 
 #define TIM_CR1_CEN     (1 << 0)
+#define TIM_SR_UIF		(1 << 0)
 #define TIM_CR1_ARPE    (1 << 7)
+#define TIM_EGR_UG      (1 << 0)
+#define TIM_CR1_DIR		(1 << 3)
 
 #define TIM1_PCLK_EN()		(RCC->APB2ENR |= (1 << 0))
 #define TIM2_PCLK_EN()		(RCC->APB1ENR |= (1 << 0))
 #define TIM3_PCLK_EN()		(RCC->APB1ENR |= (1 << 1))
+
 
 #define CH1	0
 #define CH2	1
 #define CH3	2
 #define CH4	3
 
+#define PRESCALER_16K 15999
 #define DutyCycle_80 80
 
 #define PWM_OUTPUT  1
@@ -88,6 +93,7 @@ typedef struct{
 
 void AD_TIM_Start_Countdown(AD_TIM_Handle_t *pAD_TIM_Handle, uint32_t time);
 void GP_TIM_PWM_INIT(GP_TIM_Handle_t *pGP_TIM_Handle);
+void AD_TIM_CDN_INIT(AD_TIM_Handle_t *pAD_TIM_Handle);
 void GP_TIM_SetChannel(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t ch, uint16_t duty, uint8_t mode, uint8_t enable_output);
 void GP_TIM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t EN_or_DS);
 void GP_TIM_PWM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t Channel, uint8_t Enable);
