@@ -186,6 +186,13 @@ typedef struct{
 /* v STRUCTS DEFINED HERE v */
 
 
+//NVIC
+#define NVIC_ISER0	 ((__vl uint32_t*)0xE000E100U)
+#define NVIC_ISER1	 ((__vl uint32_t*)0xE000E104U)
+
+#define NVIC_ICER0	 ((__vl uint32_t*)0xE000E180U)
+#define NVIC_ICER1	 ((__vl uint32_t*)0xE000_E184U)
+
 
 
 #endif /* INC_STM32F401RE_H_ */

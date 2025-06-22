@@ -23,24 +23,22 @@
 #include "MOVEMENT.h"
 
 
-
-
+GP_TIM_Handle_t TIM2_PWM;
+AD_TIM_Handle_t TIM1_CDN;
 
 int main(void) {
 
 	uint8_t START = 1;
 
 	// Testing LED Config
-	// GPIO Configuration for TIM2 CH4 (PA3)
+	// GPIO Configuration for TESTPIN PC13 = LED
 	GPIO_Handle_t GpioLED;
-	GpioLED.pGPIOx = GPIOC;
-	GpioLED.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_13;
+	GpioLED.pGPIOx = GPIOA;
+	GpioLED.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_5;
 	GpioLED.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_OUT;
 	GpioLED.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
 	GpioLED.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
 	GpioLED.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
-
-	//GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
 
 
 
@@ -58,21 +56,23 @@ int main(void) {
 
 
 	// GP Timer Configuration
-	GP_TIM_Handle_t TIM2_PWM;
 	TIM2_PWM.pTIMx = TIM2;
 	TIM2_PWM.GP_TIM_Config.Prescaler = 4;
 	TIM2_PWM.GP_TIM_Config.Period = 100;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Enabled = DISABLE;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].DutyCycle = DutyCycle_80;  // 80% Duty
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].DutyCycle = DutyCycle_60;  // 80% Duty
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].DutyCycle = DutyCycle_80;  // 80% Duty
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].DutyCycle = DutyCycle_60;  // 80% Duty
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Mode = PWM1;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].DutyCycle = DutyCycle_60;  // 80% Duty
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Mode = PWM1;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].DutyCycle = DutyCycle_60;  // 80% Duty
 
 	// AD Timer Configuration
-	AD_TIM_Handle_t TIM1_CDN;
 	TIM1_CDN.pTIMx = TIM1;
 	//TIM1_CDN.AD_TIM_Config.ClockDivision = 4;
 	TIM1_CDN.AD_TIM_Config.Prescaler = PRESCALER_16K;
@@ -129,15 +129,9 @@ int main(void) {
 
 	// Initialize TIM2 + CHANNELS
 	GP_TIM_PWM_INIT(&TIM2_PWM);  // Initialize with CH1 disabled
-	GP_TIM_PWM_Control(&TIM2_PWM,CH1,PWM_OUTPUT);
-	// First set the duty cycle (important when enabling later)
-	GP_TIM_Control(&TIM2_PWM, ENABLE);  // Start the timer
-	GP_TIM_PWM_Control(&TIM2_PWM,CH2,PWM_OUTPUT);
-	GP_TIM_PWM_Control(&TIM2_PWM,CH1,PWM_OFF);
-	drive_FWD(&TIM2_PWM);
 
 
-
+	AD_TIM_Start_Countdown(&TIM1_CDN,1200);
 	/* Loop forever */
 	//an ISR should set START to 1, another should set it to 0
 	while (1) {
@@ -155,13 +149,9 @@ int main(void) {
 		//			// optional
 		//			break;
 		//		}
-		//GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
-		AD_TIM_Start_Countdown(&TIM1_CDN, 2000);//gets stuck on first iteration
-
-		GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
 	}
 
-	//SENSOR_ISR()
+	//SENSOR_ISR() => I2C
 	//STORE COORDINATES OF OBSTACLE (current coordinates + sensor distance)
 	//set increment_enable FALSE (turning happens in place)
 	//SEED GENERATOR VIA XY COORDS
@@ -171,14 +161,6 @@ int main(void) {
 	//=> turn_RGT()/turn_LFT()
 	//turning happens until timer expires
 
-	//TIMER_ISR()
-	//exit TURN_STATE
-	//receive new angle from giroscope
-	//set increment_enable TRUE
-	//drive_FWD()
-	//increment coordinates based on angle (in while loop maybe)
-
-
 	//COMMENTS/IMPROVEMENTS:
 	//X,Y coordinates should be global vars?
 	//a reset option might be needed for whole algorithm
@@ -186,4 +168,17 @@ int main(void) {
 	//then algorithm should start after first sensorISR
 
 	return 0;
+}
+
+void TIM1_UP_TIM10_IRQHandler(void){
+	//TIMER_ISR()
+	//exit TURN_STATE
+	GPIO_Toggle_Pin(GPIOA, GPIO_PIN_NO_5);
+	drive_FWD(&TIM2_PWM);
+	TIM1_CDN.pTIMx->SR &= ~TIM_SR_UIF;
+	AD_TIM_Start_Countdown(&TIM1_CDN,1200);
+	//receive new angle from giroscope
+	//set increment_enable TRUE
+	//drive_FWD()
+	//increment coordinates based on angle (in while loop maybe)
 }

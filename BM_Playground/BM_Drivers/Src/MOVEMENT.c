@@ -64,5 +64,12 @@ void turn_LFT(GP_TIM_Handle_t *pGP_TIM_Handle){
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,GND);
 }
 
+void go_IDLE(GP_TIM_Handle_t *pGP_TIM_Handle){
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,GND);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,GND);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,GND);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,GND);
+}
+
 
 //CONTROL WILL WORK LIKE THIS, CAR ENTERS X STATE FOR Y TIME => Z TURN ANGLE

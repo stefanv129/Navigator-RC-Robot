@@ -9,46 +9,50 @@
 
 #include "F401RE_TIMER.h"
 
+
 void AD_TIM_Start_Countdown(AD_TIM_Handle_t *pAD_TIM_Handle, uint32_t time_ms) {
 	pAD_TIM_Handle->pTIMx->CR1 &= ~TIM_CR1_CEN;
 	while((pAD_TIM_Handle->pTIMx->CR1 & TIM_CR1_CEN) != 0);
-    // Clear any pending update flag
-    pAD_TIM_Handle->pTIMx->SR &= ~TIM_SR_UIF;
+	// Clear any pending update flag
+	pAD_TIM_Handle->pTIMx->SR &= ~TIM_SR_UIF;
 
-    // Configure for single countdown
-    pAD_TIM_Handle->pTIMx->CNT = time_ms - 1;;  // Load counter this doesnt set count to 0...
-    pAD_TIM_Handle->pTIMx->ARR = time_ms - 1;  // Count from this value down to 0
-    // Generate update to load registers
-    pAD_TIM_Handle->pTIMx->EGR |= TIM_EGR_UG;
+	// Configure for single countdown
+	pAD_TIM_Handle->pTIMx->CNT = time_ms - 1;;  // Load counter this doesnt set count to 0...
+	pAD_TIM_Handle->pTIMx->ARR = time_ms - 1;  // Count from this value down to 0
+	// Generate update to load registers
+	pAD_TIM_Handle->pTIMx->EGR |= TIM_EGR_UG;
 
 
-    pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_CEN;
-    while((pAD_TIM_Handle->pTIMx->CR1 & TIM_CR1_CEN) == 0);
-    // Clear update flag
-    pAD_TIM_Handle->pTIMx->SR &= ~TIM_SR_UIF; //doesnt set cnt to arr value...
-
-    // Wait until counter reaches 0
-    while ((pAD_TIM_Handle->pTIMx->SR & TIM_SR_UIF) == 0);
-
-    // Optionally disable timer
+	pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_CEN;
+	while((pAD_TIM_Handle->pTIMx->CR1 & TIM_CR1_CEN) == 0);
+	// Clear update flag
 }
 
 void AD_TIM_CDN_INIT(AD_TIM_Handle_t *pAD_TIM_Handle) {
-    if (pAD_TIM_Handle->pTIMx == TIM1) {
-        TIM1_PCLK_EN();
-    }
 
-    // Set timer direction to downcounting
-    pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_DIR;
+	if (pAD_TIM_Handle->pTIMx == TIM1) {
+		TIM1_PCLK_EN();
+	}
 
-    // Enable Auto-Reload Preload (recommended for stability)
-    pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_ARPE;
+	//HANDLE INTERRUPTS
+	*NVIC_ISER0 |= TIM1_UP_IRQ;
+	pAD_TIM_Handle->pTIMx->DIER |= TIM_DIER_UIE;
+	//IS CLOCK NEEDED FORE SETTING REGS?
 
-    // Set prescaler
-    pAD_TIM_Handle->pTIMx->PSC = pAD_TIM_Handle->AD_TIM_Config.Prescaler;
+	// Set timer UEV to only overflow
+	pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_URS;
 
-    // Force update event to load PSC immediately
-    pAD_TIM_Handle->pTIMx->EGR |= TIM_EGR_UG;
+	// Set timer direction to downcounting
+	pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_DIR;
+
+	// Enable Auto-Reload Preload (recommended for stability)
+	pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_ARPE;
+
+	// Set prescaler
+	pAD_TIM_Handle->pTIMx->PSC = pAD_TIM_Handle->AD_TIM_Config.Prescaler;
+
+	// Force update event to load PSC immediately
+	pAD_TIM_Handle->pTIMx->EGR |= TIM_EGR_UG;
 
 }
 

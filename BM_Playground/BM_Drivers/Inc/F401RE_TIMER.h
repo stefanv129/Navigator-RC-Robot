@@ -14,7 +14,11 @@
 #define TIM_SR_UIF		(1 << 0)
 #define TIM_CR1_ARPE    (1 << 7)
 #define TIM_EGR_UG      (1 << 0)
+#define TIM_CR1_URS	    (1 << 2)
 #define TIM_CR1_DIR		(1 << 3)
+#define TIM_DIER_UIE	(1 << 0)
+
+#define TIM1_UP_IRQ		(1 << 25)
 
 #define TIM1_PCLK_EN()		(RCC->APB2ENR |= (1 << 0))
 #define TIM2_PCLK_EN()		(RCC->APB1ENR |= (1 << 0))
@@ -28,6 +32,7 @@
 
 #define PRESCALER_16K 15999
 #define DutyCycle_80 80
+#define DutyCycle_60 60
 
 #define PWM_OUTPUT  1
 #define PWM_OFF     0

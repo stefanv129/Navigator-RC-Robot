@@ -1,4 +1,4 @@
-18:23:27 **** Clean-only build of configuration Debug for project BM_Playground ****
+14:10:19 **** Clean-only build of configuration Debug for project BM_Playground ****
 make -j16 clean 
 rm -rf ./Startup/startup_stm32f401retx.d ./Startup/startup_stm32f401retx.o
 rm -rf ./Src/main.cyclo ./Src/main.d ./Src/main.o ./Src/main.su ./Src/syscalls.cyclo ./Src/syscalls.d ./Src/syscalls.o ./Src/syscalls.su ./Src/sysmem.cyclo ./Src/sysmem.d ./Src/sysmem.o ./Src/sysmem.su
