@@ -44,6 +44,15 @@ Status Update 11/06/2025:
 -some function and variable names could still be cleaner, more macros are needed
 -didnt stick to a writing convention :(((
 
+Status Update 23/06/2025:
+-configured 4 PWM channels from TIM2 with success
+-created an interrupt based delay using TIMER1 that uses a randomly generated delay value
+-tested all driving states
+-switched from chloride 9V battery to 4xAA
+-should still test everything using external power supply
+-will now try to test the car on the ground
+-afterwards will try to implement the distance sensor interrupt
+-problem is sensor is orientated upwards...
 
 
 
