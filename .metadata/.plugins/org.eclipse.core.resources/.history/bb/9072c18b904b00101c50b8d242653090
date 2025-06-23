@@ -1,0 +1,34 @@
+/*
+ * F401RE.c
+ *
+ *  Created on: Jan 27, 2025
+ *      Author: voine
+ */
+
+#include "F401RE_RCC.h"
+
+//either make a example funcion or use a config struct
+
+void RCC_Clock_Config(RCC_Handle_t *pRCC_Handle_t) {
+    // 1. Enable HSI oscillator
+    pRCC_Handle_t->pRCC->CR |= RCC_CR_HSION;
+    while (!(pRCC_Handle_t->pRCC->CR & RCC_CR_HSIRDY)); // Wait for HSI to be ready
+
+    // 2. Set AHB, APB1, APB2 prescalers
+    pRCC_Handle_t->pRCC->CFGR &= ~(RCC_CFGR_HPRE | RCC_CFGR_PPRE1 | RCC_CFGR_PPRE2); // Clear
+    pRCC_Handle_t->pRCC->CFGR |= ((pRCC_Handle_t->RCC_Config.Prescalers.AHB_Presc << 4) |   // AHB prescaler
+                                  (pRCC_Handle_t->RCC_Config.Prescalers.APB1_Presc << 10) | // APB1 prescaler
+                                  (pRCC_Handle_t->RCC_Config.Prescalers.APB2_Presc << 13)); // APB2 prescaler
+
+    // 3. Select HSI as system clock
+    pRCC_Handle_t->pRCC->CFGR &= ~RCC_CFGR_SW;           // Clear system clock switch bits
+    pRCC_Handle_t->pRCC->CFGR |= RCC_CFGR_SW_HSI;        // Set HSI as system clock
+
+    // 4. Wait for HSI to be used as system clock
+    while ((pRCC_Handle_t->pRCC->CFGR & RCC_CFGR_SWS_Msk) != RCC_CFGR_SWS_HSI);
+
+    // 5. Optionally, disable PLL (if accidentally left on)
+    pRCC_Handle_t->pRCC->CR &= ~RCC_CR_PLLON;
+}
+
+

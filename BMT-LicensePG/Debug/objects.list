@@ -1,4 +1,0 @@
-"./MAIN_CODE/Src/main.o"
-"./MAIN_CODE/Src/syscalls.o"
-"./MAIN_CODE/Src/sysmem.o"
-"./MAIN_CODE/Startup/startup_stm32f401retx.o"

@@ -1,0 +1,42 @@
+09:56:36 **** Incremental Build of configuration Debug for project BM_Playground ****
+make -j16 all 
+arm-none-eabi-gcc "../Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DNUCLEO_F401RE -DSTM32 -DSTM32F401RETx -DSTM32F4 -c -I../Inc -I"C:/Users/voine/STM32CubeIDE/DegreeWS/BM_Playground/BM_Drivers/Inc" -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Src/main.d" -MT"Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Src/main.o"
+arm-none-eabi-gcc -o "BM_Playground.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\voine\STM32CubeIDE\DegreeWS\BM_Playground\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="BM_Playground.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: BM_Playground.elf
+ 
+arm-none-eabi-size   BM_Playground.elf 
+arm-none-eabi-objdump -h -S  BM_Playground.elf  > "BM_Playground.list"
+   text	   data	    bss	    dec	    hex	filename
+   9936	    108	   1644	  11688	   2da8	BM_Playground.elf
+Finished building: default.size.stdout
+ 
+Finished building: BM_Playground.list
+ 
+09:59:39 **** Incremental Build of configuration Debug for project BM_Playground ****
+make -j16 all 
+arm-none-eabi-gcc "../Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DNUCLEO_F401RE -DSTM32 -DSTM32F401RETx -DSTM32F4 -c -I../Inc -I"C:/Users/voine/STM32CubeIDE/DegreeWS/BM_Playground/BM_Drivers/Inc" -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Src/main.d" -MT"Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Src/main.o"
+arm-none-eabi-gcc -o "BM_Playground.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\voine\STM32CubeIDE\DegreeWS\BM_Playground\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="BM_Playground.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: BM_Playground.elf
+ 
+arm-none-eabi-size   BM_Playground.elf 
+arm-none-eabi-objdump -h -S  BM_Playground.elf  > "BM_Playground.list"
+   text	   data	    bss	    dec	    hex	filename
+   9936	    108	   1644	  11688	   2da8	BM_Playground.elf
+Finished building: default.size.stdout
+ 
+Finished building: BM_Playground.list
+ 
+10:00:40 **** Incremental Build of configuration Debug for project BM_Playground ****
+make -j16 all 
+arm-none-eabi-gcc "../Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DNUCLEO_F401RE -DSTM32 -DSTM32F401RETx -DSTM32F4 -c -I../Inc -I"C:/Users/voine/STM32CubeIDE/DegreeWS/BM_Playground/BM_Drivers/Inc" -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Src/main.d" -MT"Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Src/main.o"
+arm-none-eabi-gcc -o "BM_Playground.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\voine\STM32CubeIDE\DegreeWS\BM_Playground\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="BM_Playground.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: BM_Playground.elf
+ 
+arm-none-eabi-size   BM_Playground.elf 
+arm-none-eabi-objdump -h -S  BM_Playground.elf  > "BM_Playground.list"
+   text	   data	    bss	    dec	    hex	filename
+   9940	    108	   1644	  11692	   2dac	BM_Playground.elf
+Finished building: default.size.stdout
+ 
+Finished building: BM_Playground.list
+ 

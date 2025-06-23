@@ -9,7 +9,6 @@
 
 #include "F401RE_TIMER.h"
 
-
 void AD_TIM_Start_Countdown(AD_TIM_Handle_t *pAD_TIM_Handle, uint32_t time_ms) {
 	pAD_TIM_Handle->pTIMx->CR1 &= ~TIM_CR1_CEN;
 	while((pAD_TIM_Handle->pTIMx->CR1 & TIM_CR1_CEN) != 0);
