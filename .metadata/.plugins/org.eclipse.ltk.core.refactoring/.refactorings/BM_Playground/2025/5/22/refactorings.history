@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename resource &apos;BM_Playground/BM_Drivers/Inc/DRV8833.h&apos; to &apos;MOVEMENT.h&apos;" description="Rename resource &apos;DRV8833.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="BM_Drivers/Inc/DRV8833.h" name="MOVEMENT.h" stamp="1748178206536" updateReferences="true"/>
-</session>
