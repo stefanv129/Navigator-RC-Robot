@@ -7,7 +7,7 @@
 
 
 
-#include "F401RE_TIMER.h"
+#include "TIMER.h"
 
 void AD_TIM_Start_Countdown(AD_TIM_Handle_t *pAD_TIM_Handle, uint32_t time_ms) {
 	pAD_TIM_Handle->pTIMx->CR1 &= ~TIM_CR1_CEN;
@@ -20,7 +20,6 @@ void AD_TIM_Start_Countdown(AD_TIM_Handle_t *pAD_TIM_Handle, uint32_t time_ms) {
 	pAD_TIM_Handle->pTIMx->ARR = time_ms - 1;  // Count from this value down to 0
 	// Generate update to load registers
 	pAD_TIM_Handle->pTIMx->EGR |= TIM_EGR_UG;
-
 
 	pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_CEN;
 	while((pAD_TIM_Handle->pTIMx->CR1 & TIM_CR1_CEN) == 0);

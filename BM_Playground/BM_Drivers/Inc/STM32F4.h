@@ -5,8 +5,8 @@
  *      Author: voine
  */
 
-#ifndef INC_STM32F401RE_H_
-#define INC_STM32F401RE_H_
+#ifndef INC_STM32F4_H_
+#define INC_STM32F4_H_
 
 #include <stdint.h>
 
@@ -195,4 +195,4 @@ typedef struct{
 
 
 
-#endif /* INC_STM32F401RE_H_ */
+#endif /* INC_STM32F4_H_ */

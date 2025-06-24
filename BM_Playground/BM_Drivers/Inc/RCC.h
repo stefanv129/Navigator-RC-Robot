@@ -5,10 +5,10 @@
  *      Author: voine
  */
 
-#ifndef INC_F401RE_RCC_H_
-#define INC_F401RE_RCC_H_
+#ifndef INC_RCC_H_
+#define INC_RCC_H_
 
-#include "STM32F401RE.h"
+#include "STM32F4.h"
 
 #define AHB_DIV1 0x0 //1
 #define APB1_DIV2 0x4 //100 => /2
@@ -58,4 +58,4 @@ void RCC_Clock_Config(RCC_Handle_t *pRCC_Handle_t);
 
 
 
-#endif /* INC_F401RE_RCC_H_ */
+#endif /* INC_RCC_H_ */

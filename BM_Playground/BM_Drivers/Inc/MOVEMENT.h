@@ -8,10 +8,10 @@
 #ifndef INC_DRV8833_H_
 #define INC_DRV8833_H_
 
-#include "STM32F401RE.h"
-#include "F401RE_GPIO.h"
-#include "F401RE_TIMER.h"
+#include "GPIO.h"
 #include <stdlib.h> //for rand()
+#include "STM32F4.h"
+#include "TIMER.h"
 
 typedef struct {
     GPIO_RegDef_t *Port;

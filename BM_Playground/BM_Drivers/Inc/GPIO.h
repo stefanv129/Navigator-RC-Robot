@@ -5,10 +5,10 @@
  *      Author: voine
  */
 
-#ifndef INC_F401RE_GPIO_H_
-#define INC_F401RE_GPIO_H_
+#ifndef INC_GPIO_H_
+#define INC_GPIO_H_
 
-#include "STM32F401RE.h"
+#include "STM32F4.h"
 
 //MACROS FOR GPIO PERIPHERAL CLOCK
 #define GPIOA_PCLK_EN()    	(RCC->AHB1ENR |= (1 << 0))
@@ -96,4 +96,4 @@ void GPIO_DeInit(GPIO_RegDef_t *pGPIOx);
 
 void GPIO_Write_Pin(GPIO_RegDef_t *pGPIOx,uint8_t PinNumber, uint8_t STATE);
 void GPIO_Toggle_Pin(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber);
-#endif /* INC_F401RE_GPIO_H_ */
+#endif /* INC_GPIO_H_ */

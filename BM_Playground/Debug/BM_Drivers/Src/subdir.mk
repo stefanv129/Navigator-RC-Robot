@@ -5,22 +5,22 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../BM_Drivers/Src/F401RE_GPIO.c \
-../BM_Drivers/Src/F401RE_RCC.c \
-../BM_Drivers/Src/F401RE_TIMER.c \
-../BM_Drivers/Src/MOVEMENT.c 
+../BM_Drivers/Src/GPIO.c \
+../BM_Drivers/Src/MOVEMENT.c \
+../BM_Drivers/Src/RCC.c \
+../BM_Drivers/Src/TIMER.c 
 
 OBJS += \
-./BM_Drivers/Src/F401RE_GPIO.o \
-./BM_Drivers/Src/F401RE_RCC.o \
-./BM_Drivers/Src/F401RE_TIMER.o \
-./BM_Drivers/Src/MOVEMENT.o 
+./BM_Drivers/Src/GPIO.o \
+./BM_Drivers/Src/MOVEMENT.o \
+./BM_Drivers/Src/RCC.o \
+./BM_Drivers/Src/TIMER.o 
 
 C_DEPS += \
-./BM_Drivers/Src/F401RE_GPIO.d \
-./BM_Drivers/Src/F401RE_RCC.d \
-./BM_Drivers/Src/F401RE_TIMER.d \
-./BM_Drivers/Src/MOVEMENT.d 
+./BM_Drivers/Src/GPIO.d \
+./BM_Drivers/Src/MOVEMENT.d \
+./BM_Drivers/Src/RCC.d \
+./BM_Drivers/Src/TIMER.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -30,7 +30,7 @@ BM_Drivers/Src/%.o BM_Drivers/Src/%.su BM_Drivers/Src/%.cyclo: ../BM_Drivers/Src
 clean: clean-BM_Drivers-2f-Src
 
 clean-BM_Drivers-2f-Src:
-	-$(RM) ./BM_Drivers/Src/F401RE_GPIO.cyclo ./BM_Drivers/Src/F401RE_GPIO.d ./BM_Drivers/Src/F401RE_GPIO.o ./BM_Drivers/Src/F401RE_GPIO.su ./BM_Drivers/Src/F401RE_RCC.cyclo ./BM_Drivers/Src/F401RE_RCC.d ./BM_Drivers/Src/F401RE_RCC.o ./BM_Drivers/Src/F401RE_RCC.su ./BM_Drivers/Src/F401RE_TIMER.cyclo ./BM_Drivers/Src/F401RE_TIMER.d ./BM_Drivers/Src/F401RE_TIMER.o ./BM_Drivers/Src/F401RE_TIMER.su ./BM_Drivers/Src/MOVEMENT.cyclo ./BM_Drivers/Src/MOVEMENT.d ./BM_Drivers/Src/MOVEMENT.o ./BM_Drivers/Src/MOVEMENT.su
+	-$(RM) ./BM_Drivers/Src/GPIO.cyclo ./BM_Drivers/Src/GPIO.d ./BM_Drivers/Src/GPIO.o ./BM_Drivers/Src/GPIO.su ./BM_Drivers/Src/MOVEMENT.cyclo ./BM_Drivers/Src/MOVEMENT.d ./BM_Drivers/Src/MOVEMENT.o ./BM_Drivers/Src/MOVEMENT.su ./BM_Drivers/Src/RCC.cyclo ./BM_Drivers/Src/RCC.d ./BM_Drivers/Src/RCC.o ./BM_Drivers/Src/RCC.su ./BM_Drivers/Src/TIMER.cyclo ./BM_Drivers/Src/TIMER.d ./BM_Drivers/Src/TIMER.o ./BM_Drivers/Src/TIMER.su
 
 .PHONY: clean-BM_Drivers-2f-Src
 

@@ -18,9 +18,9 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include "F401RE_GPIO.h"
-#include "F401RE_TIMER.h"
-#include "F401RE_RCC.h"
+#include "GPIO.h"
+#include "RCC.h"
+#include "TIMER.h"
 #include "MOVEMENT.h"
 
 GP_TIM_Handle_t TIM2_PWM;
@@ -41,8 +41,9 @@ int main(void) {
 	Full_GPIO_Config();
 	Full_GP_TIM_Config();
 
-	AD_TIM_Start_Countdown(&TIM1_CDN,get_random_duration());
-
+	//turn_LFT(&TIM2_PWM);
+	AD_TIM_Start_Countdown(&TIM1_CDN,150);
+	turn_LFT(&TIM2_PWM);
 	/* Loop forever */
 	//an ISR should set START to 1, another should set it to 0
 	while (1) {
@@ -92,9 +93,9 @@ void TIM1_UP_TIM10_IRQHandler(void){
 	//TIMER_ISR()
 	//exit TURN_STATE
 	GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
-	drive_FWD(&TIM2_PWM);
+	go_IDLE(&TIM2_PWM);
 	TIM1_CDN.pTIMx->SR &= ~TIM_SR_UIF;
-	AD_TIM_Start_Countdown(&TIM1_CDN,get_random_duration());
+	AD_TIM_Start_Countdown(&TIM1_CDN,3000);
 	//receive new angle from giroscope
 	//set increment_enable TRUE
 	//drive_FWD()
@@ -135,7 +136,7 @@ void Full_GPIO_Config(void){
 	GpioCH3.GPIO_PinConfig.GPIO_PinAltFunMode = 1;  // AF1 for TIM2_PWM
 	GpioCH3.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
-	// GPIO Configuration for TIM2 CH2 (PA1)
+	// GPIO Configuration for TIM2 CH2 (PB3)
 	GPIO_Handle_t GpioCH2;
 	GpioCH2.pGPIOx = GPIOB;
 	GpioCH2.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_3;

@@ -5,10 +5,11 @@
  *      Author: voine
  */
 
-#ifndef INC_F401RE_TIMER_H_
-#define INC_F401RE_TIMER_H_
+#ifndef INC_TIMER_H_
+#define INC_TIMER_H_
 
-#include "F401RE_GPIO.h"
+#include "GPIO.h"
+#include "STM32F4.h"
 
 #define TIM_CR1_CEN     (1 << 0)
 #define TIM_SR_UIF		(1 << 0)
@@ -102,4 +103,4 @@ void AD_TIM_CDN_INIT(AD_TIM_Handle_t *pAD_TIM_Handle);
 void GP_TIM_SetChannel(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t ch, uint16_t duty, uint8_t mode, uint8_t enable_output);
 void GP_TIM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t EN_or_DS);
 void GP_TIM_PWM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t Channel, uint8_t Enable);
-#endif /* INC_F401RE_TIMER_H_ */
+#endif /* INC_TIMER_H_ */

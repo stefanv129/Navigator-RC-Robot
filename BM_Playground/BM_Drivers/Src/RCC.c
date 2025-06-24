@@ -5,7 +5,7 @@
  *      Author: voine
  */
 
-#include "F401RE_RCC.h"
+#include <RCC.h>
 
 //either make a example funcion or use a config struct
 
