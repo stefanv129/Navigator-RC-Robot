@@ -54,6 +54,13 @@ Status Update 23/06/2025:
 -afterwards will try to implement the distance sensor interrupt
 -problem is sensor is orientated upwards...
 
+Status Update 25/06/2025:
+-found out the sonsor I planned on using requires an API from STM 
+-I installed its drivers but had to exclude the one using Windows OS files, because they didnt detect I am using Windows I guess?
+-not to keen on the idea of using an API for a sensor, the point was to do absolutely everything by hand
+-STM documentation insists that the API is the way to configure the sensor, configuration without the API is very hard
+-it is weird to not use HAL but use this
+
 
 
 
