@@ -21,10 +21,12 @@
 #include "GPIO.h"
 #include "RCC.h"
 #include "TIMER.h"
+#include "I2C.h"
 #include "MOVEMENT.h"
 
 GP_TIM_Handle_t TIM2_PWM;
 AD_TIM_Handle_t TIM1_CDN;
+I2C_Handle_t I2C1_RX;
 
 void init_random_seed(void);
 uint32_t get_random_duration(void);
@@ -32,6 +34,7 @@ void Full_RCC_Config(void);
 void Full_GPIO_Config(void);
 void Full_GP_TIM_Config(void);
 void Full_AD_TIM_Config(void);
+void Full_I2C_Config(void);
 
 int main(void) {
 
@@ -40,6 +43,7 @@ int main(void) {
 	Full_AD_TIM_Config();
 	Full_GPIO_Config();
 	Full_GP_TIM_Config();
+	Full_I2C_Config();
 
 	//turn_LFT(&TIM2_PWM);
 	AD_TIM_Start_Countdown(&TIM1_CDN,150);
@@ -166,39 +170,76 @@ void Full_GPIO_Config(void){
 	GpioCH4.GPIO_PinConfig.GPIO_PinAltFunMode = 1;  // AF1 for TIM2_PWM
 	GpioCH4.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
+	// GPIO Configuration for SDA (PB6)
+	GPIO_Handle_t GpioSCL;
+	GpioSCL.pGPIOx = GPIOB;
+	GpioSCL.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_6;
+	GpioSCL.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
+	GpioSCL.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
+	GpioSCL.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	GpioSCL.GPIO_PinConfig.GPIO_PinAltFunMode = 4;  // AF4 for I2C1_sCL
+	GpioSCL.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+
+	// GPIO Configuration for SCL (PB7)
+	GPIO_Handle_t GpioSDA;
+	GpioSDA.pGPIOx = GPIOB;
+	GpioSDA.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_7;
+	GpioSDA.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
+	GpioSDA.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
+	GpioSDA.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	GpioSDA.GPIO_PinConfig.GPIO_PinAltFunMode = 4;  // AF4 for I2C1_sDA
+	GpioSDA.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+
 	// Initialize GPIO
 	GPIO_Init(&GpioLED); //turns led on
 	GPIO_Init(&GpioCH3);
 	GPIO_Init(&GpioCH2);
 	GPIO_Init(&GpioCH1);
 	GPIO_Init(&GpioCH4);
+	GPIO_Init(&GpioSCL);
+	GPIO_Init(&GpioSDA);
 }
 
 void Full_GP_TIM_Config(void){
+
 	// GP Timer Configuration
 	TIM2_PWM.pTIMx = TIM2;
 	TIM2_PWM.GP_TIM_Config.Prescaler = 4;
 	TIM2_PWM.GP_TIM_Config.Period = 100;
+
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Enabled = ENABLE;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Enabled = ENABLE;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Enabled = ENABLE;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Mode = PWM1;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].DutyCycle = DutyCycle_60;  // 80% Duty
+
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Mode = PWM1;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].DutyCycle = DutyCycle_60;  // 80% Duty
+
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Mode = PWM1;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].DutyCycle = DutyCycle_60;  // 80% Duty
+
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Mode = PWM1;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].DutyCycle = DutyCycle_60;  // 80% Duty
+
 	// Initialize TIM2 + CHANNELS
 	GP_TIM_PWM_INIT(&TIM2_PWM);  // Initialize with CH1 disabled
 }
 
 void Full_AD_TIM_Config(void){
+
 	// AD Timer Configuration
 	TIM1_CDN.pTIMx = TIM1;
+
 	//TIM1_CDN.AD_TIM_Config.ClockDivision = 4;
 	TIM1_CDN.AD_TIM_Config.Prescaler = PRESCALER_16K;
 	AD_TIM_CDN_INIT(&TIM1_CDN);
+}
+
+void Full_I2C_Config(void){
+	I2C1_RX.pI2Cx = I2C1;
+	I2C1_RX.I2C_Config.I2C_AckControl = 1;
+	I2C1_RX.I2C_Config.I2C_SCLSpeed = 100000;
+	I2C_SM_INIT(&I2C1_RX);
 }

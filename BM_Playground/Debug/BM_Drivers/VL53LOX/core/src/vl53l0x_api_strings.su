@@ -1,8 +1,0 @@
-../BM_Drivers/VL53LOX/core/src/vl53l0x_api_strings.c:45:15:VL53L0X_check_part_used	32	static
-../BM_Drivers/VL53LOX/core/src/vl53l0x_api_strings.c:77:15:VL53L0X_get_device_info	32	static
-../BM_Drivers/VL53LOX/core/src/vl53l0x_api_strings.c:125:15:VL53L0X_get_device_error_string	32	static
-../BM_Drivers/VL53LOX/core/src/vl53l0x_api_strings.c:204:15:VL53L0X_get_range_status_string	24	static
-../BM_Drivers/VL53LOX/core/src/vl53l0x_api_strings.c:246:15:VL53L0X_get_pal_error_string	32	static
-../BM_Drivers/VL53LOX/core/src/vl53l0x_api_strings.c:336:15:VL53L0X_get_pal_state_string	32	static
-../BM_Drivers/VL53LOX/core/src/vl53l0x_api_strings.c:382:15:VL53L0X_get_sequence_steps_info	24	static
-../BM_Drivers/VL53LOX/core/src/vl53l0x_api_strings.c:422:15:VL53L0X_get_limit_check_info	40	static

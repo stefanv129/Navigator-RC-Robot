@@ -1,5 +1,0 @@
-../BM_Drivers/Src/GPIO.c:12:6:GPIO_PeriClockControl	16	static
-../BM_Drivers/Src/GPIO.c:62:6:GPIO_Init	24	static
-../BM_Drivers/Src/GPIO.c:109:6:GPIO_DeInit	16	static
-../BM_Drivers/Src/GPIO.c:132:6:GPIO_Write_Pin	16	static
-../BM_Drivers/Src/GPIO.c:140:6:GPIO_Toggle_Pin	16	static

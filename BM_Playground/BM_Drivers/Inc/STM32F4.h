@@ -96,6 +96,8 @@ typedef struct{
 
 //APB1vvv
 #define BASEADDR_APB1  (uint32_t) 0x40000000U
+#define APB1_CLOCK_FREQ_MHZ	(uint8_t)		8
+#define APB1_CLOCK_FREQ						8000000
 //TIMERS
 #define BASEADDR_TIM_2 (BASEADDR_APB1 + 0x0000)
 #define BASEADDR_TIM_3 (BASEADDR_APB1 + 0x0400)
@@ -134,10 +136,24 @@ typedef struct{
 #define BASEADDR_SPI_2 (uint32_t)0x4000_3800U
 #define BASEADDR_SPI_3 (uint32_t)0x4000_3C00U
 //I2Cs
-#define BASEADDR_I2C_1 (uint32_t)0x4000_5400U
+#define BASEADDR_I2C_1 (uint32_t)0x40005400U
 #define BASEADDR_I2C_2 (uint32_t)0x4000_5800U
 #define BASEADDR_I2C_3 (uint32_t)0x4000_5C00U
 //APB1^^^
+typedef struct{
+	__vl uint32_t CR1;
+	__vl uint32_t CR2;
+	__vl uint32_t OAR1;
+	__vl uint32_t OAR2;
+	__vl uint32_t DR;
+	__vl uint32_t SR1;
+	__vl uint32_t SR2;
+	__vl uint32_t CCR;
+	__vl uint32_t TRISE;
+	__vl uint32_t FLTR;
+}I2C_RegDef_t;
+
+#define I2C1 	((I2C_RegDef_t*)BASEADDR_I2C_1)
 
 //APB2vvv
 #define BASEADDR_APB2	 (uint32_t)0x40010000U
