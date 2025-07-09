@@ -32,71 +32,48 @@ void I2C_SM_INIT(I2C_Handle_t *pI2CHandle)
     pI2CHandle->pI2Cx->CR1 |= I2C_CR1_PE;
 }
 
-void I2C_Master_RX_Read(I2C_Handle_t *pI2C_Handle){
+uint8_t I2C_Master_Read_Reg(I2C_RegDef_t *pI2Cx, uint8_t slaveAddr, uint8_t regAddr)
+{
+    uint8_t data;
 
+    // 1. Start
+    pI2Cx->CR1 |= I2C_CR1_START;
+    while (!(pI2Cx->SR1 & I2C_SR1_SB));
+    (void)pI2Cx->SR1;
+
+    // 2. Send address with write bit
+    pI2Cx->DR = (slaveAddr << 1);
+    while (!(pI2Cx->SR1 & I2C_SR1_ADDR));
+    (void)pI2Cx->SR1;
+    (void)pI2Cx->SR2;
+
+    // 3. Send register address
+    while (!(pI2Cx->SR1 & I2C_SR1_TXE));
+    pI2Cx->DR = regAddr;
+    while (!(pI2Cx->SR1 & I2C_SR1_BTF)); // Wait for reg addr sent
+
+    // 4. Repeated start
+    pI2Cx->CR1 |= I2C_CR1_START;
+    while (!(pI2Cx->SR1 & I2C_SR1_SB));
+    (void)pI2Cx->SR1;
+
+    // 5. Send address with read bit
+    pI2Cx->DR = (slaveAddr << 1) | 1;
+    while (!(pI2Cx->SR1 & I2C_SR1_ADDR));
+
+    // 6. Disable ACK, clear ADDR
+    pI2Cx->CR1 &= ~I2C_CR1_ACK;
+    (void)pI2Cx->SR1;
+    (void)pI2Cx->SR2;
+
+    // 7. Read data
+    while (!(pI2Cx->SR1 & I2C_SR1_RXNE));
+    data = pI2Cx->DR;
+
+    // 8. Stop
+    pI2Cx->CR1 |= I2C_CR1_STOP;
+
+    return data;
 }
 
-//void I2C_MasterReceive(I2C_TypeDef *I2Cx, uint8_t slaveAddr, uint8_t *rxBuffer, uint32_t len)
-//{
-//    // 1. Generate START
-//    I2Cx->CR1 |= I2C_CR1_START;
-//    while (!(I2Cx->SR1 & I2C_SR1_SB)); // Wait for start condition
-//
-//    // 2. Send slave address with read bit
-//    I2Cx->DR = (slaveAddr << 1) | 1;
-//    while (!(I2Cx->SR1 & I2C_SR1_ADDR)); // Wait for address to be sent
-//
-//    // 3. Handle address flag
-//    if (len == 1)
-//    {
-//        // Disable ACK, clear ADDR, send STOP
-//        I2Cx->CR1 &= ~I2C_CR1_ACK;
-//        (void)I2Cx->SR1;
-//        (void)I2Cx->SR2;
-//        I2Cx->CR1 |= I2C_CR1_STOP;
-//
-//        while (!(I2Cx->SR1 & I2C_SR1_RXNE));
-//        rxBuffer[0] = I2Cx->DR;
-//    }
-//    else if (len == 2)
-//    {
-//        // Clear ACK, set POS, clear ADDR
-//        I2Cx->CR1 &= ~I2C_CR1_ACK;
-//        I2Cx->CR1 |= I2C_CR1_POS;
-//        (void)I2Cx->SR1;
-//        (void)I2Cx->SR2;
-//
-//        while (!(I2Cx->SR1 & I2C_SR1_BTF));
-//        I2Cx->CR1 |= I2C_CR1_STOP;
-//        rxBuffer[0] = I2Cx->DR;
-//        rxBuffer[1] = I2Cx->DR;
-//    }
-//    else
-//    {
-//        (void)I2Cx->SR1;
-//        (void)I2Cx->SR2;
-//
-//        while (len > 3)
-//        {
-//            while (!(I2Cx->SR1 & I2C_SR1_RXNE));
-//            *rxBuffer++ = I2Cx->DR;
-//            len--;
-//        }
-//
-//        // Prepare to NACK next-to-last
-//        while (!(I2Cx->SR1 & I2C_SR1_BTF));
-//        I2Cx->CR1 &= ~I2C_CR1_ACK;
-//        *rxBuffer++ = I2Cx->DR;
-//
-//        while (!(I2Cx->SR1 & I2C_SR1_BTF));
-//        I2Cx->CR1 |= I2C_CR1_STOP;
-//        *rxBuffer++ = I2Cx->DR;
-//        *rxBuffer++ = I2Cx->DR;
-//    }
-//
-//    // Re-enable ACK for next reception
-//    I2Cx->CR1 |= I2C_CR1_ACK;
-//}
 
-//we need to read from slaves
-//master == receiver

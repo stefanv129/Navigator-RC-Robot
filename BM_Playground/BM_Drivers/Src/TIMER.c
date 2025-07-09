@@ -9,22 +9,25 @@
 
 #include "TIMER.h"
 
-void AD_TIM_Start_Countdown(AD_TIM_Handle_t *pAD_TIM_Handle, uint32_t time_ms) {
-	pAD_TIM_Handle->pTIMx->CR1 &= ~TIM_CR1_CEN;
-	while((pAD_TIM_Handle->pTIMx->CR1 & TIM_CR1_CEN) != 0);
+void AD_TIM_Start_Countdown(AD_TIM_RegDef_t *pTIMx, uint32_t time_ms) {
+	pTIMx->CR1 &= ~TIM_CR1_CEN;
+	while((pTIMx->CR1 & TIM_CR1_CEN) != 0);
 	// Clear any pending update flag
-	pAD_TIM_Handle->pTIMx->SR &= ~TIM_SR_UIF;
+	pTIMx->SR &= ~TIM_SR_UIF;
 
 	// Configure for single countdown
-	pAD_TIM_Handle->pTIMx->CNT = time_ms - 1;;  // Load counter this doesnt set count to 0...
-	pAD_TIM_Handle->pTIMx->ARR = time_ms - 1;  // Count from this value down to 0
+	pTIMx->CNT = time_ms - 1;;  // Load counter this doesnt set count to 0...
+	pTIMx->ARR = time_ms - 1;  // Count from this value down to 0
 	// Generate update to load registers
-	pAD_TIM_Handle->pTIMx->EGR |= TIM_EGR_UG;
+	pTIMx->EGR |= TIM_EGR_UG;
 
-	pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_CEN;
-	while((pAD_TIM_Handle->pTIMx->CR1 & TIM_CR1_CEN) == 0);
+	pTIMx->CR1 |= TIM_CR1_CEN;
+	while((pTIMx->CR1 & TIM_CR1_CEN) == 0);
 	// Clear update flag
 }
+//could just use timer handle instead
+
+
 
 void AD_TIM_CDN_INIT(AD_TIM_Handle_t *pAD_TIM_Handle) {
 
@@ -78,7 +81,7 @@ void GP_TIM_PWM_INIT(GP_TIM_Handle_t *pGP_TIM_Handle) {
 		uint8_t mode = pGP_TIM_Handle->GP_TIM_Config.CH_Setup[ch].CH_Mode;
 		uint8_t enabled = pGP_TIM_Handle->GP_TIM_Config.CH_Setup[ch].CH_Enabled;
 
-		GP_TIM_SetChannel(pGP_TIM_Handle, ch, duty, mode, enabled);
+		GP_TIM_SetChannel(pGP_TIM_Handle->pTIMx, ch, duty, mode, enabled);
 	}
 
 	// Force update to load all values
@@ -88,17 +91,17 @@ void GP_TIM_PWM_INIT(GP_TIM_Handle_t *pGP_TIM_Handle) {
 
 
 
-void GP_TIM_SetChannel(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t ch, uint16_t duty, uint8_t mode, uint8_t enable_output) {
-	volatile uint32_t *ccmr = (ch < 2) ? &pGP_TIM_Handle->pTIMx->CCMR1 : &pGP_TIM_Handle->pTIMx->CCMR2;
+void GP_TIM_SetChannel(GP_TIM_RegDef_t *pTIMx, uint8_t ch, uint16_t duty, uint8_t mode, uint8_t enable_output) {
+	volatile uint32_t *ccmr = (ch < 2) ? &pTIMx->CCMR1 : &pTIMx->CCMR2;
 	volatile uint32_t *ccr;
 	uint8_t shift;
 	uint32_t enable_bit;
 
 	switch (ch) {
-	case CH1: ccr = &pGP_TIM_Handle->pTIMx->CCR1; shift = 4; enable_bit = 1 << 0; break;
-	case CH2: ccr = &pGP_TIM_Handle->pTIMx->CCR2; shift = 12; enable_bit = 1 << 4; break;
-	case CH3: ccr = &pGP_TIM_Handle->pTIMx->CCR3; shift = 4; enable_bit = 1 << 8; break;
-	case CH4: ccr = &pGP_TIM_Handle->pTIMx->CCR4; shift = 12; enable_bit = 1 << 12; break;
+	case CH1: ccr = &pTIMx->CCR1; shift = 4; enable_bit = 1 << 0; break;
+	case CH2: ccr = &pTIMx->CCR2; shift = 12; enable_bit = 1 << 4; break;
+	case CH3: ccr = &pTIMx->CCR3; shift = 4; enable_bit = 1 << 8; break;
+	case CH4: ccr = &pTIMx->CCR4; shift = 12; enable_bit = 1 << 12; break;
 	default: return;
 	}
 
@@ -113,19 +116,19 @@ void GP_TIM_SetChannel(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t ch, uint16_t dut
 
 	// Only enable output if requested
 	if (enable_output) {
-		pGP_TIM_Handle->pTIMx->CCER |= enable_bit;
+		pTIMx->CCER |= enable_bit;
 	} else {
-		pGP_TIM_Handle->pTIMx->CCER &= ~enable_bit;
+		pTIMx->CCER &= ~enable_bit;
 	}
 }
 
-void GP_TIM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t EN_or_DS) {
+void GP_TIM_Control(GP_TIM_RegDef_t *pTIMx, uint8_t EN_or_DS) {
 	if (EN_or_DS == ENABLE) {
-		pGP_TIM_Handle->pTIMx->CR1 |= TIM_CR1_CEN;
-		while((pGP_TIM_Handle->pTIMx->CR1 & TIM_CR1_CEN) == 0);
+		pTIMx->CR1 |= TIM_CR1_CEN;
+		while((pTIMx->CR1 & TIM_CR1_CEN) == 0);
 	} else {
-		pGP_TIM_Handle->pTIMx->CR1 &= ~TIM_CR1_CEN;
-		while((pGP_TIM_Handle->pTIMx->CR1 & TIM_CR1_CEN) == 1);
+		pTIMx->CR1 &= ~TIM_CR1_CEN;
+		while((pTIMx->CR1 & TIM_CR1_CEN) == 1);
 	}
 }
 

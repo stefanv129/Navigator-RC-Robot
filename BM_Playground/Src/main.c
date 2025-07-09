@@ -24,6 +24,8 @@
 #include "I2C.h"
 #include "MOVEMENT.h"
 
+//#include
+
 GP_TIM_Handle_t TIM2_PWM;
 AD_TIM_Handle_t TIM1_CDN;
 I2C_Handle_t I2C1_RX;
@@ -36,6 +38,12 @@ void Full_GP_TIM_Config(void);
 void Full_AD_TIM_Config(void);
 void Full_I2C_Config(void);
 
+//
+//VL53L0X_Dev_t *Device;
+//Device->
+
+
+
 int main(void) {
 
 	init_random_seed();
@@ -46,7 +54,7 @@ int main(void) {
 	Full_I2C_Config();
 
 	//turn_LFT(&TIM2_PWM);
-	AD_TIM_Start_Countdown(&TIM1_CDN,150);
+	AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,150);
 	turn_LFT(&TIM2_PWM);
 	/* Loop forever */
 	//an ISR should set START to 1, another should set it to 0
@@ -99,7 +107,7 @@ void TIM1_UP_TIM10_IRQHandler(void){
 	GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
 	go_IDLE(&TIM2_PWM);
 	TIM1_CDN.pTIMx->SR &= ~TIM_SR_UIF;
-	AD_TIM_Start_Countdown(&TIM1_CDN,3000);
+	AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,3000);
 	//receive new angle from giroscope
 	//set increment_enable TRUE
 	//drive_FWD()
@@ -109,9 +117,6 @@ void Full_RCC_Config(void){
 	RCC_Handle_t RCC_Handle;
 	RCC_Handle.pRCC = RCC;
 	RCC_Handle.RCC_Config.CLK_Source = HSI;
-	//RCC_Handle.RCC_Config.PLL_Facs.PLL_M = 16;
-	//RCC_Handle.RCC_Config.PLL_Facs.PLL_N = 400;
-	//RCC_Handle.RCC_Config.PLL_Facs.PLL_P = 3;
 	RCC_Handle.RCC_Config.Prescalers.AHB_Presc = AHB_DIV1;//0x0
 	RCC_Handle.RCC_Config.Prescalers.APB1_Presc = APB1_DIV2;//0x4
 	RCC_Handle.RCC_Config.Prescalers.APB2_Presc = APB2_DIV2;//0x4

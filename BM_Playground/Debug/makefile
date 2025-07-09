@@ -11,7 +11,6 @@ RM := rm -rf
 -include sources.mk
 -include Startup/subdir.mk
 -include Src/subdir.mk
--include BM_Drivers/VL53LOX/core/src/subdir.mk
 -include BM_Drivers/Src/subdir.mk
 -include BM_Drivers/Inc/subdir.mk
 -include objects.mk

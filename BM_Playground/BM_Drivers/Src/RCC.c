@@ -28,31 +28,32 @@ void RCC_Clock_Config(RCC_Handle_t *pRCC_Handle_t) {
 		while ((pRCC_Handle_t->pRCC->CFGR & RCC_CFGR_SWS_HSI) != RCC_CFGR_SW_HSI); //TEST IF BITS 2 AND 3 ARE 0
 
 
-	} else if (pRCC_Handle_t->RCC_Config.CLK_Source == PLLCLK) {
-		// Enable HSI if it is selected as the PLL source
-		if (!(pRCC_Handle_t->pRCC->PLLCFGR & ~RCC_PLLCFGR_PLLSRC_HSI)) {
-			pRCC_Handle_t->pRCC->CR |= RCC_CR_HSION;
-			while (!(pRCC_Handle_t->pRCC->CR & RCC_CR_HSIRDY)); // Wait until HSI is ready
-		}
-
-		// 2. Configure the PLL
-		pRCC_Handle_t->pRCC->PLLCFGR &= RCC_PLLCFGR_PLLSRC_HSI;  // Ensure HSI is selected as PLL source
-		pRCC_Handle_t->pRCC->PLLCFGR |= (pRCC_Handle_t->RCC_Config.PLL_Factors.PLL_M |
-				(pRCC_Handle_t->RCC_Config.PLL_Factors.PLL_N << 6) |
-				(pRCC_Handle_t->RCC_Config.PLL_Factors.PLL_P << 16));
-
-		// 3. Enable the PLL
-		pRCC_Handle_t->pRCC->CR |= RCC_CR_PLLON;
-		while (!(pRCC_Handle_t->pRCC->CR & RCC_CR_PLLRDY)); // Wait until PLL is ready
-
-		// 4. Select the PLL as the system clock source
-		pRCC_Handle_t->pRCC->CFGR &= ~0x3; // Clear system clock switch bits
-		pRCC_Handle_t->pRCC->CFGR |= RCC_CFGR_SW_PLL; // Select PLL as system clock source
-
-		// 5. Wait until PLL is used as the system clock
-		//3 << 2
-		while ((pRCC_Handle_t->pRCC->CFGR & 0xF) != 0xA);
 	}
+//	else if (pRCC_Handle_t->RCC_Config.CLK_Source == PLLCLK) {
+//		// Enable HSI if it is selected as the PLL source
+//		if (!(pRCC_Handle_t->pRCC->PLLCFGR & ~RCC_PLLCFGR_PLLSRC_HSI)) {
+//			pRCC_Handle_t->pRCC->CR |= RCC_CR_HSION;
+//			while (!(pRCC_Handle_t->pRCC->CR & RCC_CR_HSIRDY)); // Wait until HSI is ready
+//		}
+//
+//		// 2. Configure the PLL
+//		pRCC_Handle_t->pRCC->PLLCFGR &= RCC_PLLCFGR_PLLSRC_HSI;  // Ensure HSI is selected as PLL source
+//		pRCC_Handle_t->pRCC->PLLCFGR |= (pRCC_Handle_t->RCC_Config.PLL_Factors.PLL_M |
+//				(pRCC_Handle_t->RCC_Config.PLL_Factors.PLL_N << 6) |
+//				(pRCC_Handle_t->RCC_Config.PLL_Factors.PLL_P << 16));
+//
+//		// 3. Enable the PLL
+//		pRCC_Handle_t->pRCC->CR |= RCC_CR_PLLON;
+//		while (!(pRCC_Handle_t->pRCC->CR & RCC_CR_PLLRDY)); // Wait until PLL is ready
+//
+//		// 4. Select the PLL as the system clock source
+//		pRCC_Handle_t->pRCC->CFGR &= ~0x3; // Clear system clock switch bits
+//		pRCC_Handle_t->pRCC->CFGR |= RCC_CFGR_SW_PLL; // Select PLL as system clock source
+//
+//		// 5. Wait until PLL is used as the system clock
+//		//3 << 2
+//		while ((pRCC_Handle_t->pRCC->CFGR & 0xF) != 0xA);
+//	}
 }
 
 

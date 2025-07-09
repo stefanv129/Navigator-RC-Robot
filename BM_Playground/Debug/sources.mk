@@ -24,7 +24,6 @@ C_DEPS :=
 SUBDIRS := \
 BM_Drivers/Inc \
 BM_Drivers/Src \
-BM_Drivers/VL53LOX/core/src \
 Src \
 Startup \
 
