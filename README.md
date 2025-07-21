@@ -61,6 +61,12 @@ Status Update 25/06/2025:
 -STM documentation insists that the API is the way to configure the sensor, configuration without the API is very hard
 -it is weird to not use HAL but use this
 
+Status Update 21/07/2025:
+-now using analog distance sensor
+-algorithm works aftyer testing, some things need tweaking still
+-want to test the car on the ground but dont have enough wires yet
+-will test gyro next
+
 
 
 
