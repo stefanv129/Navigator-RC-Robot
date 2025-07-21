@@ -46,6 +46,13 @@ typedef struct{
 
 }GPIO_RegDef_t;
 
+#define GPIO_BASEADDR_TO_CODE(x)      ((x == GPIOA)?0:\
+										(x == GPIOB)?1:\
+										(x == GPIOC)?2:0)
+
+
+
+
 #define GPIOA   ((GPIO_RegDef_t *) BASEADDR_GPIO_A)
 #define GPIOB   ((GPIO_RegDef_t *) BASEADDR_GPIO_B)
 #define GPIOC   ((GPIO_RegDef_t *) BASEADDR_GPIO_C)
@@ -192,8 +199,35 @@ typedef struct{
 #define BASEADDR_SPI_1   (uint32_t)0x4001_3000U
 #define BASEADDR_SPI_4 	 (uint32_t)0x4001_3400U
 //EXTI & SYSCFG
-#define BASEADDR_SYSCFG  (uint32_t)0x4001_3800U
-#define BASEADDR_EXTI    (uint32_t)0x4001_3C00U
+#define BASEADDR_SYSCFG  (uint32_t)0x40013800U
+
+typedef struct{
+	__vl uint32_t MEMRMP;
+	__vl uint32_t PMC;
+	__vl uint32_t EXTICR[4];
+	uint32_t      RESERVED1[2];
+	__vl uint32_t CMPCR;
+	uint32_t      RESERVED2[2];
+	__vl uint32_t CFGR;
+}SYSCFG_RegDef_t;
+
+#define SYSCFG	((SYSCFG_RegDef_t *)BASEADDR_SYSCFG)
+#define SYSCFG_PCLK_EN() (RCC->APB2ENR |= (1 << 14))
+
+#define BASEADDR_EXTI    (uint32_t)0x40013C00U
+
+
+typedef struct{
+	__vl uint32_t IMR;
+	__vl uint32_t EMR;
+	__vl uint32_t RTSR;
+	__vl uint32_t FTSR;
+	__vl uint32_t SWIER;
+	__vl uint32_t PR;
+}EXTI_RegDef_t;
+
+#define EXTI ((EXTI_RegDef_t *)BASEADDR_EXTI)
+
 //APB2^^^
 
 /* ^ ADDRESSES DEFINED HERE ^ */
@@ -203,11 +237,23 @@ typedef struct{
 
 
 //NVIC
-#define NVIC_ISER0	 ((__vl uint32_t*)0xE000E100U)
-#define NVIC_ISER1	 ((__vl uint32_t*)0xE000E104U)
+#define NVIC_ISER0	 ((__vl uint32_t*)0xE000E100)
+#define NVIC_ISER1	 ((__vl uint32_t*)0xE000E104)
+#define NVIC_ISER2   ((__vl uint32_t*)0xE000E108)
+#define NVIC_ISER3   ((__vl uint32_t*)0xE000E10c)
 
-#define NVIC_ICER0	 ((__vl uint32_t*)0xE000E180U)
-#define NVIC_ICER1	 ((__vl uint32_t*)0xE000_E184U)
+#define NVIC_ICER0	 ((__vl uint32_t*)0xE000E180)
+#define NVIC_ICER1	 ((__vl uint32_t*)0xE000E184)
+#define NVIC_ICER2   ((__vl uint32_t*)0XE000E188)
+#define NVIC_ICER3	 ((__vl uint32_t*)0XE000E18C)
+
+#define IRQ_NO_EXTI0 		6
+#define IRQ_NO_EXTI1 		7
+#define IRQ_NO_EXTI2 		8
+#define IRQ_NO_EXTI3 		9
+#define IRQ_NO_EXTI4 		10
+#define IRQ_NO_EXTI9_5 		23
+#define IRQ_NO_EXTI15_10 	40
 
 
 

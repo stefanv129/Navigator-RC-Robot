@@ -54,10 +54,11 @@ int main(void) {
 	Full_I2C_Config();
 
 	//turn_LFT(&TIM2_PWM);
-	AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,150);
-	turn_LFT(&TIM2_PWM);
+	//AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,150);
+	//turn_LFT(&TIM2_PWM);
 	/* Loop forever */
 	//an ISR should set START to 1, another should set it to 0
+	drive_FWD(&TIM2_PWM);
 	while (1) {
 		//		switch (current_state) {
 		//		case SEARCH_STATE:
@@ -93,8 +94,9 @@ int main(void) {
 
 	return 0;
 }
+
 void init_random_seed(void) {
-	srand(69);  // Seed with timer count for variability
+	srand(129);  // Seed with timer count for variability
 }
 
 uint32_t get_random_duration(void) {
@@ -105,14 +107,45 @@ void TIM1_UP_TIM10_IRQHandler(void){
 	//TIMER_ISR()
 	//exit TURN_STATE
 	GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
-	go_IDLE(&TIM2_PWM);
+	while(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4));
+	//walls still close
+	//turn until they are gone
+	drive_FWD(&TIM2_PWM);
 	TIM1_CDN.pTIMx->SR &= ~TIM_SR_UIF;
-	AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,3000);
+
 	//receive new angle from giroscope
 	//set increment_enable TRUE
-	//drive_FWD()
 	//increment coordinates based on angle (in while loop maybe)
+
+	//drive_fwd until obstacle => EXTI4_IRQHandler
 }
+
+void EXTI4_IRQHandler(void)
+{
+
+	//store coordinates +7cm
+	//if GPIOA4 is low wall was sensed
+	if (!(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4)))  // Optional: double check
+	{
+		GPIO_IRQHandling(GPIO_PIN_NO_4);  // Clear EXTI pending bit
+
+		uint32_t duration = get_random_duration();//seeding needed using coords?
+		//duration should be in a given range
+		if(!(duration % 2))
+		{
+			turn_RGT(&TIM2_PWM);
+		}
+		else
+		{
+			turn_LFT(&TIM2_PWM);
+		}
+
+		AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,duration);
+	}
+	GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
+}
+
+
 void Full_RCC_Config(void){
 	RCC_Handle_t RCC_Handle;
 	RCC_Handle.pRCC = RCC;
@@ -130,10 +163,30 @@ void Full_GPIO_Config(void){
 	GpioLED.pGPIOx = GPIOC;
 	GpioLED.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_13;
 	GpioLED.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_OUT;
-	GpioLED.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
+	GpioLED.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
 	GpioLED.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
 	GpioLED.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
+	// SENSOR CONFIG
+	// GPIO Configuration for GpioSensor PA4 = GPIO INTERRUPT
+	GPIO_Handle_t GpioSensor;
+	GpioSensor.pGPIOx = GPIOA;
+	GpioSensor.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_4;
+	GpioSensor.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_IT_FT;
+	GpioSensor.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
+	GpioSensor.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+
+
+
+	// GPIO Configuration for TIM2 CH4 (PA3)
+	GPIO_Handle_t GpioCH4;
+	GpioCH4.pGPIOx = GPIOA;
+	GpioCH4.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_3;
+	GpioCH4.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
+	GpioCH4.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
+	GpioCH4.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	GpioCH4.GPIO_PinConfig.GPIO_PinAltFunMode = 1;  // AF1 for TIM2_PWM
+	GpioCH4.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
 	// GPIO Configuration for TIM2 CH3 (PA2)
 	GPIO_Handle_t GpioCH3;
@@ -165,16 +218,6 @@ void Full_GPIO_Config(void){
 	GpioCH1.GPIO_PinConfig.GPIO_PinAltFunMode = 1;  // AF1 for TIM2_PWM
 	GpioCH1.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
-	// GPIO Configuration for TIM2 CH4 (PA3)
-	GPIO_Handle_t GpioCH4;
-	GpioCH4.pGPIOx = GPIOA;
-	GpioCH4.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_3;
-	GpioCH4.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
-	GpioCH4.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
-	GpioCH4.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
-	GpioCH4.GPIO_PinConfig.GPIO_PinAltFunMode = 1;  // AF1 for TIM2_PWM
-	GpioCH4.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
-
 	// GPIO Configuration for SDA (PB6)
 	GPIO_Handle_t GpioSCL;
 	GpioSCL.pGPIOx = GPIOB;
@@ -197,12 +240,15 @@ void Full_GPIO_Config(void){
 
 	// Initialize GPIO
 	GPIO_Init(&GpioLED); //turns led on
+	GPIO_Init(&GpioSensor);
 	GPIO_Init(&GpioCH3);
 	GPIO_Init(&GpioCH2);
 	GPIO_Init(&GpioCH1);
 	GPIO_Init(&GpioCH4);
 	GPIO_Init(&GpioSCL);
 	GPIO_Init(&GpioSDA);
+
+	GPIO_IRQInterruptConfig(EXTI4_IRQ, ENABLE);
 }
 
 void Full_GP_TIM_Config(void){

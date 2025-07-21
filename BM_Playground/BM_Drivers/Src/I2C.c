@@ -77,3 +77,22 @@ uint8_t I2C_Master_Read_Reg(I2C_RegDef_t *pI2Cx, uint8_t slaveAddr, uint8_t regA
 }
 
 
+//I2C_Master_Write_Reg(I2C1, 0x68, 0x6B, 0x00);  // Write 0x00 to PWR_MGMT_1
+//uint8_t id = I2C_Master_Read_Reg(I2C1, 0x68, 0x75);  // Should return 0x68
+//
+//uint8_t accel_raw[6];
+//for (int i = 0; i < 6; i++) {
+//    accel_raw[i] = I2C_Master_Read_Reg(I2C1, 0x68, 0x3B + i);
+//}
+//int16_t accel_x = (accel_raw[0] << 8) | accel_raw[1];
+//int16_t accel_y = (accel_raw[2] << 8) | accel_raw[3];
+//int16_t accel_z = (accel_raw[4] << 8) | accel_raw[5];
+
+//float gyro_x_dps = gyro_x / 131.0f;  // if default ±250°/s range
+
+//0x43 → GYRO_XOUT_H
+//0x44 → GYRO_XOUT_L
+//0x45 → GYRO_YOUT_H
+//0x46 → GYRO_YOUT_L
+//0x47 → GYRO_ZOUT_H
+//0x48 → GYRO_ZOUT_L

@@ -74,6 +74,7 @@
 #define GPIO_PIN_PU			1
 #define GPIO_PIN_PD			2
 
+#define EXTI4_IRQ			10
 
 typedef struct{
 	uint8_t GPIO_PinNumber;
@@ -95,5 +96,9 @@ void GPIO_DeInit(GPIO_RegDef_t *pGPIOx);
 
 
 void GPIO_Write_Pin(GPIO_RegDef_t *pGPIOx,uint8_t PinNumber, uint8_t STATE);
+uint8_t GPIO_Read_Pin(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber);
 void GPIO_Toggle_Pin(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber);
+
+void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi);
+void GPIO_IRQHandling(uint8_t PinNumber);
 #endif /* INC_GPIO_H_ */
