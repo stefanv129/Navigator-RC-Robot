@@ -24,11 +24,33 @@
 #include "I2C.h"
 #include "MOVEMENT.h"
 
-//#include
+#include <math.h>
+
+
+#define ACCEL_SENS_2G 16384.0f
+#define GYRO_SENS_500DPS 65.5f
+
+
+typedef enum {
+	STATE_IDLE,
+	STATE_DRIVING,
+	STATE_TURNING,
+} RobotState_t;
+
+RobotState_t current_state = STATE_IDLE;
 
 GP_TIM_Handle_t TIM2_PWM;
 AD_TIM_Handle_t TIM1_CDN;
 I2C_Handle_t I2C1_RX;
+
+int16_t X_POINT = 0; //cuurent X
+int16_t Y_POINT = 0; //cuurent Y
+float ANGLE = 90;
+uint8_t INCREMENT = 0;
+uint32_t TURN_DURATION = 0;
+
+//start at origin
+//should be signed integers?
 
 void init_random_seed(void);
 uint32_t get_random_duration(void);
@@ -38,100 +60,93 @@ void Full_GP_TIM_Config(void);
 void Full_AD_TIM_Config(void);
 void Full_I2C_Config(void);
 
-//
-//VL53L0X_Dev_t *Device;
-//Device->
-
-
-
-int main(void) {
-
-	init_random_seed();
-	Full_RCC_Config();
-	Full_AD_TIM_Config();
-	Full_GPIO_Config();
-	Full_GP_TIM_Config();
-	Full_I2C_Config();
-
-	//turn_LFT(&TIM2_PWM);
-	//AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,150);
-	//turn_LFT(&TIM2_PWM);
-	/* Loop forever */
-	//an ISR should set START to 1, another should set it to 0
-	drive_FWD(&TIM2_PWM);
-	while (1) {
-		//		switch (current_state) {
-		//		case SEARCH_STATE:
-		//			// drive forward
-		//			update_position();
-		//			break;
-		//
-		//		case TURN_STATE:
-		//			// nothing, wait for timer ISR to transition out
-		//			break;
-		//
-		//		case IDLE_STATE:
-		//			// optional
-		//			break;
-		//		}
-	}
-
-	//SENSOR_ISR() => I2C
-	//STORE COORDINATES OF OBSTACLE (current coordinates + sensor distance)
-	//set increment_enable FALSE (turning happens in place)
-	//SEED GENERATOR VIA XY COORDS
-	//GEN RANDOM NUMBER IN GIVEN RANGE
-	//START COUNTDWN TIMER FOR RANDMOM AMOUNT
-	//CHOOSE RGT/LFT BASED ON RANDOM NUMBER
-	//=> turn_RGT()/turn_LFT()
-	//turning happens until timer expires
-
-	//COMMENTS/IMPROVEMENTS:
-	//X,Y coordinates should be global vars?
-	//a reset option might be needed for whole algorithm
-	//after init drive_fwd() is called directly
-	//then algorithm should start after first sensorISR
-
-	return 0;
-}
-
 void init_random_seed(void) {
 	srand(129);  // Seed with timer count for variability
 }
 
 uint32_t get_random_duration(void) {
-	return 550 + (rand() % 3100);  // Between 1000 and 4999 ms
+	return 50 + (rand() % 2000);  // Between 50 - 200 ms lets say
+	//what is maximum rand value?
 }
 
-void TIM1_UP_TIM10_IRQHandler(void){
-	//TIMER_ISR()
-	//exit TURN_STATE
-	GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
-	while(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4));
-	//walls still close
-	//turn until they are gone
-	drive_FWD(&TIM2_PWM);
-	TIM1_CDN.pTIMx->SR &= ~TIM_SR_UIF;
-
-	//receive new angle from giroscope
-	//set increment_enable TRUE
-	//increment coordinates based on angle (in while loop maybe)
-
-	//drive_fwd until obstacle => EXTI4_IRQHandler
+uint16_t calc_rotation(uint32_t duration_ms, float angular_velocity_dps) {
+	return (uint16_t)((duration_ms / 1000.0f) * angular_velocity_dps);  // degrees = time * speed
 }
 
-void EXTI4_IRQHandler(void)
+void ms_delay(uint32_t time_in_ms)
 {
+	//16 mhz freq?
+	//APB1_CLOCK_FREQ
+	time_in_ms = time_in_ms / 1000; //=> seconds
+	time_in_ms = (1 / APB1_CLOCK_FREQ) * time_in_ms;
 
-	//store coordinates +7cm
+	for(int i =0; i<time_in_ms; i++){}
+}
+
+int main(void) {
+
+	Full_RCC_Config();
+	Full_AD_TIM_Config();
+	Full_GPIO_Config();
+	Full_GP_TIM_Config();
+	Full_I2C_Config();
+	init_random_seed();
+
+
+	//begin with drive FWD if start is initialized
+	drive_FWD(&TIM2_PWM);
+
+	//when wall is sensed
+	while (1)
+	{
+		if(current_state == STATE_DRIVING)
+		{
+			//float accel_g = raw_accel / 16384.0f;  // if FSR = ±2g
+			//INCREMENT = accel_g  * 10 ms
+			//	X_POINT = X_POINT + INCREMENT * sin(ANGLE);
+			//	Y_POINT = Y_POINT + INCREMENT * cos(ANGLE);
+		}
+		else if(current_state == STATE_TURNING)
+		{
+			//float gyro_dps = raw_gyro / 65.5f;  // if FSR = ±500°/s
+			//angular_velocity = read_w_gyro(); => Z, last 2 bytes of the 6 read
+			//ANGLE = (ANGLE + calc_rotation(10ms,w))%360;
+		}
+		else
+		{
+
+		}
+		srand(X_POINT%Y_POINT*ANGLE);
+		//10 ms delay lets say => update every 10 ms
+		//timer duration becomes irrelevant this way
+		//only state dictates
+	}
+	return 0;
+}
+
+
+
+void EXTI4_IRQHandler(void) //WALL SENSED
+{
+	//store coordinates +7cm (distance sensor measures 7 cm in front)
+
+	//	int16_t COORD_X = X_POINT + 7 * sin(ANGLE * DEG_TO_RAD);
+	//  int16_t COORD_Y = Y_POINT + 7 * cos(ANGLE * DEG_TO_RAD);
+	// if we use 1cm as reference (maybe too much)
+
+	//send coords via UART to ESP32 => only COORD_X and COORD_Y
+	//they need to be parsed to be read
+	//esp32 sends them to laptop
+
+	current_state = STATE_TURNING;
 	//if GPIOA4 is low wall was sensed
-	if (!(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4)))  // Optional: double check
+	if (!(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4)))
 	{
 		GPIO_IRQHandling(GPIO_PIN_NO_4);  // Clear EXTI pending bit
 
-		uint32_t duration = get_random_duration();//seeding needed using coords?
+		uint32_t turn_duration = get_random_duration();//seeding needed using coords?
 		//duration should be in a given range
-		if(!(duration % 2))
+		if(!(turn_duration % 2))
 		{
 			turn_RGT(&TIM2_PWM);
 		}
@@ -140,9 +155,30 @@ void EXTI4_IRQHandler(void)
 			turn_LFT(&TIM2_PWM);
 		}
 
-		AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,duration);
+		AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,turn_duration);
+		//exits to while(1)
 	}
-	GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
+	//GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
+}
+
+
+void TIM1_UP_TIM10_IRQHandler(void) //ROTATION TIME OVER
+{
+	GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13); //light signal
+
+	while(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4)){
+		//angular_velocity = read_w_gyro();
+		//ANGLE = ANGLE + calc_rotation(10ms,angular_velocity);
+		//10 ms delay as well
+	}
+	//walls still sensed
+	//turn until they are gone
+	//bad in interrupt but it is a good failsafe if car is stuck
+
+	current_state = STATE_DRIVING;
+	drive_FWD(&TIM2_PWM);
+
+	TIM1_CDN.pTIMx->SR &= ~TIM_SR_UIF;
 }
 
 
