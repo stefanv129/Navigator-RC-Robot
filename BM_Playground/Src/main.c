@@ -18,10 +18,12 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include "GPIO.h"
 #include "RCC.h"
 #include "TIMER.h"
 #include "I2C.h"
+#include "USART.h"
 #include "MOVEMENT.h"
 
 #include <math.h>
@@ -29,7 +31,7 @@
 
 #define ACCEL_SENS_2G 16384.0f
 #define GYRO_SENS_500DPS 65.5f
-
+#define START_PSW	129
 
 typedef enum {
 	STATE_IDLE,
@@ -42,6 +44,7 @@ RobotState_t current_state = STATE_IDLE;
 GP_TIM_Handle_t TIM2_PWM;
 AD_TIM_Handle_t TIM1_CDN;
 I2C_Handle_t I2C1_RX;
+USART_Handle_t USART1_TXRX;
 
 int16_t X_POINT = 0; //cuurent X
 int16_t Y_POINT = 0; //cuurent Y
@@ -59,6 +62,7 @@ void Full_GPIO_Config(void);
 void Full_GP_TIM_Config(void);
 void Full_AD_TIM_Config(void);
 void Full_I2C_Config(void);
+void Full_USART_Config(void);
 
 void init_random_seed(void) {
 	srand(129);  // Seed with timer count for variability
@@ -73,24 +77,53 @@ uint16_t calc_rotation(uint32_t duration_ms, float angular_velocity_dps) {
 	return (uint16_t)((duration_ms / 1000.0f) * angular_velocity_dps);  // degrees = time * speed
 }
 
-void ms_delay(uint32_t time_in_ms)
-{
-	//16 mhz freq?
-	//APB1_CLOCK_FREQ
-	time_in_ms = time_in_ms / 1000; //=> seconds
-	time_in_ms = (1 / APB1_CLOCK_FREQ) * time_in_ms;
-
-	for(int i =0; i<time_in_ms; i++){}
+void ms_delay(uint32_t time_ms) {
+	for(volatile uint32_t i = 0; i < time_ms * 1000; ++i) {
+		__asm__("nop");
+	}
+	//not reliable and not accurate!!
 }
+
+char msg[32] = "Hello World!\n";
 
 int main(void) {
 
 	Full_RCC_Config();
+
+	//
 	Full_AD_TIM_Config();
 	Full_GPIO_Config();
 	Full_GP_TIM_Config();
+	Full_USART_Config();
 	Full_I2C_Config();
 	init_random_seed();
+
+
+
+	//Full_GPIO_Config(); turn off led
+	//USART_ReceiveData(&USART1_TXRX, pRxBuffer, Len)Data(USART1_TXRX, (uint8_t *)msg, strlen(msg));
+
+	while(1){
+	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
+	ms_delay(1000);//about 3 seconds?????????
+	GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
+	}
+	//SOMETHING MAY BE NEEDED AFTER SENDING DATA
+	//WHY DOES LED TTURN OFF?
+
+	GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,DISABLE);
+
+	//while(1);
+	//use esp as server
+	//connect laptop to esp and send the condition via app
+	//maybe also use a stop condition?
+	//how far can ble reach?
+	//char start_condition = 0;
+
+	//	while(start_condition != START_PSW){
+	//		init_random_seed();
+	//		start_condition = read_bluetooth_message_from_uart();
+	//	};
 
 
 	//begin with drive FWD if start is initialized
@@ -103,8 +136,9 @@ int main(void) {
 		{
 			//float accel_g = raw_accel / 16384.0f;  // if FSR = ±2g
 			//INCREMENT = accel_g  * 10 ms
-			//	X_POINT = X_POINT + INCREMENT * sin(ANGLE);
-			//	Y_POINT = Y_POINT + INCREMENT * cos(ANGLE);
+			//			float angle_rad = ANGLE * (M_PI / 180.0f);
+			//			X_POINT += (int16_t)(INCREMENT * sinf(angle_rad));
+			//			Y_POINT += (int16_t)(INCREMENT * cosf(angle_rad));
 		}
 		else if(current_state == STATE_TURNING)
 		{
@@ -116,7 +150,8 @@ int main(void) {
 		{
 
 		}
-		srand(X_POINT%Y_POINT*ANGLE);
+		//srand(X_POINT%Y_POINT*ANGLE);
+		ms_delay(10);
 		//10 ms delay lets say => update every 10 ms
 		//timer duration becomes irrelevant this way
 		//only state dictates
@@ -133,6 +168,8 @@ void EXTI4_IRQHandler(void) //WALL SENSED
 	//	int16_t COORD_X = X_POINT + 7 * sin(ANGLE * DEG_TO_RAD);
 	//  int16_t COORD_Y = Y_POINT + 7 * cos(ANGLE * DEG_TO_RAD);
 	// if we use 1cm as reference (maybe too much)
+
+	//srand(COORD_X - COORD_Y); //good seed here
 
 	//send coords via UART to ESP32 => only COORD_X and COORD_Y
 	//they need to be parsed to be read
@@ -154,7 +191,7 @@ void EXTI4_IRQHandler(void) //WALL SENSED
 		{
 			turn_LFT(&TIM2_PWM);
 		}
-
+		GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,ENABLE);
 		AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,turn_duration);
 		//exits to while(1)
 	}
@@ -164,13 +201,17 @@ void EXTI4_IRQHandler(void) //WALL SENSED
 
 void TIM1_UP_TIM10_IRQHandler(void) //ROTATION TIME OVER
 {
-	GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13); //light signal
+	//GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13); //light signal
 
-	while(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4)){
+
+
+	while(!(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4))){
 		//angular_velocity = read_w_gyro();
 		//ANGLE = ANGLE + calc_rotation(10ms,angular_velocity);
 		//10 ms delay as well
 	}
+
+	GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,DISABLE);
 	//walls still sensed
 	//turn until they are gone
 	//bad in interrupt but it is a good failsafe if car is stuck
@@ -211,6 +252,25 @@ void Full_GPIO_Config(void){
 	GpioSensor.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_IT_FT;
 	GpioSensor.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
 	GpioSensor.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+
+	// UART CONFIG
+	// GPIO Configuration for UART_TX PA9 = UART_TX
+	GPIO_Handle_t GpioTX;
+	GpioTX.pGPIOx = GPIOA;
+	GpioTX.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_9;
+	GpioTX.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;//AF07
+	GpioTX.GPIO_PinConfig.GPIO_PinAltFunMode = 7;
+	GpioTX.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
+	GpioTX.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PIN_PU;
+
+	// GPIO Configuration for GpioSensor PA10 = UART_RX
+	GPIO_Handle_t GpioRX;
+	GpioRX.pGPIOx = GPIOA;
+	GpioRX.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_10;
+	GpioRX.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;//AF07
+	GpioRX.GPIO_PinConfig.GPIO_PinAltFunMode = 7;
+	GpioRX.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
+	GpioRX.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PIN_PU;
 
 
 
@@ -283,6 +343,8 @@ void Full_GPIO_Config(void){
 	GPIO_Init(&GpioCH4);
 	GPIO_Init(&GpioSCL);
 	GPIO_Init(&GpioSDA);
+	GPIO_Init(&GpioTX);
+	GPIO_Init(&GpioRX);
 
 	GPIO_IRQInterruptConfig(EXTI4_IRQ, ENABLE);
 }
@@ -329,4 +391,17 @@ void Full_I2C_Config(void){
 	I2C1_RX.I2C_Config.I2C_AckControl = 1;
 	I2C1_RX.I2C_Config.I2C_SCLSpeed = 100000;
 	I2C_SM_INIT(&I2C1_RX);
+}
+
+void Full_USART_Config(void){
+
+	USART1_TXRX.pUSARTx = USART1;
+	USART1_TXRX.USART_Config.USART_Mode = USART_MODE_TXRX;
+	USART1_TXRX.USART_Config.USART_Baud = USART_STD_BAUD_9600;
+	USART1_TXRX.USART_Config.USART_WordLength = USART_WORDLEN_8BITS;
+	USART1_TXRX.USART_Config.USART_NoOfStopBits	= USART_STOPBITS_1;
+	//enable peripheral via cr1?
+
+	USART_INIT(&USART1_TXRX);
+	//USART1_TXRX.pUSARTx->CR1 |= (1 << 13);
 }

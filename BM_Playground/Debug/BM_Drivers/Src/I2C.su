@@ -1,2 +1,0 @@
-../BM_Drivers/Src/I2C.c:12:6:I2C_SM_INIT	24	static
-../BM_Drivers/Src/I2C.c:35:9:I2C_Master_Read_Reg	24	static

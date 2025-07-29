@@ -3,7 +3,7 @@
 "./BM_Drivers/Src/MOVEMENT.o"
 "./BM_Drivers/Src/RCC.o"
 "./BM_Drivers/Src/TIMER.o"
-"./BM_Drivers/Src/UART.o"
+"./BM_Drivers/Src/USART.o"
 "./Src/main.o"
 "./Src/syscalls.o"
 "./Src/sysmem.o"
