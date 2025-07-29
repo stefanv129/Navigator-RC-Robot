@@ -67,6 +67,12 @@ Status Update 21/07/2025:
 -want to test the car on the ground but dont have enough wires yet
 -will test gyro next
 
-
+Status Update 29/07/2025:
+-used UART drivers from https://github.com/niekiran/MasteringMCU/blob/master/Resources/Source_code/Workspace/stm32f4xx_drivers/drivers/src/stm32f407xx_usart_driver.c to test communication with ESP32
+-was too lazy to write them myself and couldnt wait to see if comms work
+-rushed this part because uart communication will help me debug and test the giro sensor
+-I only tested tx for now, after testing rx I will begin soldering wires to build the robot
+-then I wil be able to test the algorithm itself and check data with the arduino serial monitor via esp32
+-I think I have enough time for everything afterwards including the documentation
 
 
