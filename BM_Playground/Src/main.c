@@ -97,12 +97,12 @@ int main(void) {
 	init_random_seed();
 	GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
 
-	while(password != START_PSW){
-		USART_ReceiveData(&USART1_TXRX, &password, 1);
-		GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);//ON AGAIN
-	}
-
-	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
+//	while(password != START_PSW){
+//		USART_ReceiveData(&USART1_TXRX, &password, 1);
+//		GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);//ON AGAIN
+//	}
+//
+//	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
 
 	//while(1);
 	//use esp as server
@@ -118,7 +118,7 @@ int main(void) {
 
 
 	//begin with drive FWD if start is initialized
-	drive_FWD(&TIM2_PWM);
+	//drive_FWD(&TIM2_PWM);
 
 	//when wall is sensed
 	while (1)
@@ -137,9 +137,18 @@ int main(void) {
 			//angular_velocity = read_w_gyro(); => Z, last 2 bytes of the 6 read
 			//ANGLE = (ANGLE + calc_rotation(10ms,w))%360;
 		}
-		else
+		else if(current_state == STATE_IDLE)
 		{
+			USART_ReceiveData(&USART1_TXRX, &password, 1);
+			//will block here until it receives data
+			GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);//ON AGAIN
 
+			if(password == START_PSW)
+			{
+				//START CONDITION basically
+				current_state == STATE_DRIVING;
+				drive_FWD(&TIM2_PWM);
+			}
 		}
 		//srand(X_POINT%Y_POINT*ANGLE);
 		ms_delay(10);
@@ -164,9 +173,12 @@ void EXTI4_IRQHandler(void) //WALL SENSED
 
 	//send coords via UART to ESP32 => only COORD_X and COORD_Y
 	//they need to be parsed to be read
+	//ESP should aknowledge the data
+	current_state = STATE_TURNING;
+	//if esp has received stop condition we go to idle state and navigation stops
 	//esp32 sends them to laptop
 
-	current_state = STATE_TURNING;
+
 	//if GPIOA4 is low wall was sensed
 	if (!(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4)))
 	{
