@@ -1,0 +1,5 @@
+../BM_Drivers/Src/USART.c:11:6:USART_SetBaudRate	40	static
+../BM_Drivers/Src/USART.c:64:6:USART_INIT	24	static
+../BM_Drivers/Src/USART.c:111:9:USART_GetFlagStatus	16	static
+../BM_Drivers/Src/USART.c:122:6:USART_SendData	32	static
+../BM_Drivers/Src/USART.c:171:6:USART_ReceiveData	32	static

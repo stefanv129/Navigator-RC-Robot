@@ -31,7 +31,7 @@
 
 #define ACCEL_SENS_2G 16384.0f
 #define GYRO_SENS_500DPS 65.5f
-#define START_PSW	129
+#define START_PSW	12
 
 typedef enum {
 	STATE_IDLE,
@@ -46,14 +46,13 @@ AD_TIM_Handle_t TIM1_CDN;
 I2C_Handle_t I2C1_RX;
 USART_Handle_t USART1_TXRX;
 
-int16_t X_POINT = 0; //cuurent X
-int16_t Y_POINT = 0; //cuurent Y
+int16_t X_POINT = 0; //current X
+int16_t Y_POINT = 0; //current Y
 float ANGLE = 90;
 uint8_t INCREMENT = 0;
 uint32_t TURN_DURATION = 0;
 
 //start at origin
-//should be signed integers?
 
 void init_random_seed(void);
 uint32_t get_random_duration(void);
@@ -65,11 +64,11 @@ void Full_I2C_Config(void);
 void Full_USART_Config(void);
 
 void init_random_seed(void) {
-	srand(129);  // Seed with timer count for variability
+	srand(129);  // Seed with x,y coords/angle
 }
 
 uint32_t get_random_duration(void) {
-	return 50 + (rand() % 2000);  // Between 50 - 200 ms lets say
+	return 150 + (rand() % 451);  // Between 50 - 200 ms lets say
 	//what is maximum rand value?
 }
 
@@ -84,34 +83,26 @@ void ms_delay(uint32_t time_ms) {
 	//not reliable and not accurate!!
 }
 
-char msg[32] = "Hello World!\n";
+char msg[32] = "Password OK!\n";
+uint8_t password = 0;
 
 int main(void) {
 
 	Full_RCC_Config();
-
-	//
 	Full_AD_TIM_Config();
 	Full_GPIO_Config();
 	Full_GP_TIM_Config();
 	Full_USART_Config();
 	Full_I2C_Config();
 	init_random_seed();
-
-
-
-	//Full_GPIO_Config(); turn off led
-	//USART_ReceiveData(&USART1_TXRX, pRxBuffer, Len)Data(USART1_TXRX, (uint8_t *)msg, strlen(msg));
-
-	while(1){
-	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
-	ms_delay(1000);//about 3 seconds?????????
 	GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
-	}
-	//SOMETHING MAY BE NEEDED AFTER SENDING DATA
-	//WHY DOES LED TTURN OFF?
 
-	GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,DISABLE);
+	while(password != START_PSW){
+		USART_ReceiveData(&USART1_TXRX, &password, 1);
+		GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);//ON AGAIN
+	}
+
+	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
 
 	//while(1);
 	//use esp as server
@@ -272,8 +263,6 @@ void Full_GPIO_Config(void){
 	GpioRX.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
 	GpioRX.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PIN_PU;
 
-
-
 	// GPIO Configuration for TIM2 CH4 (PA3)
 	GPIO_Handle_t GpioCH4;
 	GpioCH4.pGPIOx = GPIOA;
@@ -400,6 +389,7 @@ void Full_USART_Config(void){
 	USART1_TXRX.USART_Config.USART_Baud = USART_STD_BAUD_9600;
 	USART1_TXRX.USART_Config.USART_WordLength = USART_WORDLEN_8BITS;
 	USART1_TXRX.USART_Config.USART_NoOfStopBits	= USART_STOPBITS_1;
+	USART1_TXRX.USART_Config.USART_ParityControl = USART_PARITY_DISABLE;
 	//enable peripheral via cr1?
 
 	USART_INIT(&USART1_TXRX);
