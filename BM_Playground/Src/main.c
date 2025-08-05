@@ -68,7 +68,7 @@ void init_random_seed(void) {
 }
 
 uint32_t get_random_duration(void) {
-	return 150 + (rand() % 451);  // Between 50 - 200 ms lets say
+	return 250 + (rand() % 451);  // Between 50 - 200 ms lets say
 	//what is maximum rand value?
 }
 
@@ -80,11 +80,12 @@ void ms_delay(uint32_t time_ms) {
 	for(volatile uint32_t i = 0; i < time_ms * 1000; ++i) {
 		__asm__("nop");
 	}
-	//not reliable and not accurate!!
 }
 
 char msg[32] = "Password OK!\n";
 uint8_t password = 0;
+
+
 
 int main(void) {
 
@@ -95,14 +96,19 @@ int main(void) {
 	Full_USART_Config();
 	Full_I2C_Config();
 	init_random_seed();
-	GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
 
-//	while(password != START_PSW){
-//		USART_ReceiveData(&USART1_TXRX, &password, 1);
-//		GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);//ON AGAIN
+//	while(1){
+//		GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
+//		ms_delay(1000);
 //	}
-//
-//	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
+	ms_delay(500);
+
+	//	while(password != START_PSW){
+	//		USART_ReceiveData(&USART1_TXRX, &password, 1);
+	//		GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);//ON AGAIN
+	//	}
+	//
+	//	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
 
 	//while(1);
 	//use esp as server
@@ -119,6 +125,7 @@ int main(void) {
 
 	//begin with drive FWD if start is initialized
 	//drive_FWD(&TIM2_PWM);
+	//current_state == STATE_DRIVING;
 
 	//when wall is sensed
 	while (1)
@@ -141,13 +148,22 @@ int main(void) {
 		{
 			USART_ReceiveData(&USART1_TXRX, &password, 1);
 			//will block here until it receives data
-			GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);//ON AGAIN
-
+			GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
 			if(password == START_PSW)
 			{
 				//START CONDITION basically
-				current_state == STATE_DRIVING;
+
+				current_state = STATE_DRIVING;
 				drive_FWD(&TIM2_PWM);
+				GPIO_IRQInterruptConfig(EXTI4_IRQ, ENABLE);
+				GPIO_Write_Pin(GPIOC, GPIO_PIN_NO_13, DISABLE);
+				//ms_delay(2000);
+				//go_IDLE(&TIM2_PWM);
+				//stop_FWD(&TIM2_PWM);
+				//ms_delay(2000);
+				//drive_FWD(&TIM2_PWM);
+
+
 			}
 		}
 		//srand(X_POINT%Y_POINT*ANGLE);
@@ -161,8 +177,9 @@ int main(void) {
 
 
 
-void EXTI4_IRQHandler(void) //WALL SENSED
+void  EXTI4_IRQHandler(void) //WALL SENSED
 {
+	stop_FWD(&TIM2_PWM);
 	//store coordinates +7cm (distance sensor measures 7 cm in front)
 
 	//	int16_t COORD_X = X_POINT + 7 * sin(ANGLE * DEG_TO_RAD);
@@ -174,18 +191,23 @@ void EXTI4_IRQHandler(void) //WALL SENSED
 	//send coords via UART to ESP32 => only COORD_X and COORD_Y
 	//they need to be parsed to be read
 	//ESP should aknowledge the data
-	current_state = STATE_TURNING;
+
 	//if esp has received stop condition we go to idle state and navigation stops
 	//esp32 sends them to laptop
 
+	//stop_FWD(&TIM2_PWM);
+	//GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
+	//ms_delay(100);
 
-	//if GPIOA4 is low wall was sensed
-	if (!(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4)))
-	{
-		GPIO_IRQHandling(GPIO_PIN_NO_4);  // Clear EXTI pending bit
 
-		uint32_t turn_duration = get_random_duration();//seeding needed using coords?
-		//duration should be in a given range
+	GPIO_IRQHandling(GPIO_PIN_NO_4);
+	ms_delay(400);
+	uint32_t turn_duration = get_random_duration();
+
+	if(!GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4)){
+		GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,DISABLE);
+		current_state = STATE_TURNING;
+
 		if(!(turn_duration % 2))
 		{
 			turn_RGT(&TIM2_PWM);
@@ -194,30 +216,29 @@ void EXTI4_IRQHandler(void) //WALL SENSED
 		{
 			turn_LFT(&TIM2_PWM);
 		}
-		GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,ENABLE);
-		AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,turn_duration);
-		//exits to while(1)
+
 	}
-	//GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
+	else //sensing stopped
+	{
+		AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,turn_duration);
+		//increment angle for timer duration
+	}
+
 }
 
 
 void TIM1_UP_TIM10_IRQHandler(void) //ROTATION TIME OVER
 {
-	//GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13); //light signal
-
-
-
-	while(!(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4))){
-		//angular_velocity = read_w_gyro();
-		//ANGLE = ANGLE + calc_rotation(10ms,angular_velocity);
-		//10 ms delay as well
-	}
-
-	GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,DISABLE);
+	//	while(!(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4))){
+	//		//angular_velocity = read_w_gyro();
+	//		//ANGLE = ANGLE + calc_rotation(10ms,angular_velocity);
+	//		//10 ms delay as well
+	//	}
 	//walls still sensed
 	//turn until they are gone
 	//bad in interrupt but it is a good failsafe if car is stuck
+
+	GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,ENABLE);
 
 	current_state = STATE_DRIVING;
 	drive_FWD(&TIM2_PWM);
@@ -248,13 +269,13 @@ void Full_GPIO_Config(void){
 	GpioLED.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
 	// SENSOR CONFIG
-	// GPIO Configuration for GpioSensor PA4 = GPIO INTERRUPT
+	// GPIO Configuration for GpioSensor PB0 = GPIO INTERRUPT
 	GPIO_Handle_t GpioSensor;
 	GpioSensor.pGPIOx = GPIOA;
 	GpioSensor.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_4;
-	GpioSensor.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_IT_FT;
+	GpioSensor.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_IT_RFT;
 	GpioSensor.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
-	GpioSensor.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+	GpioSensor.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PIN_PU;
 
 	// UART CONFIG
 	// GPIO Configuration for UART_TX PA9 = UART_TX
@@ -347,31 +368,31 @@ void Full_GPIO_Config(void){
 	GPIO_Init(&GpioTX);
 	GPIO_Init(&GpioRX);
 
-	GPIO_IRQInterruptConfig(EXTI4_IRQ, ENABLE);
+	//GPIO_IRQInterruptConfig(EXTI15_10_IRQ, ENABLE);
 }
 
 void Full_GP_TIM_Config(void){
 
 	// GP Timer Configuration
 	TIM2_PWM.pTIMx = TIM2;
-	TIM2_PWM.GP_TIM_Config.Prescaler = 4;
-	TIM2_PWM.GP_TIM_Config.Period = 100;
+	TIM2_PWM.GP_TIM_Config.Prescaler = 6;
+	TIM2_PWM.GP_TIM_Config.Period = 6400;
 
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].DutyCycle = DutyCycle_60;  // 80% Duty
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].DutyCycle = 10;
 
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].DutyCycle = DutyCycle_60;  // 80% Duty
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].DutyCycle = 10;
 
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].DutyCycle = DutyCycle_60;  // 80% Duty
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].DutyCycle = 10;
 
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].DutyCycle = DutyCycle_60;  // 80% Duty
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].DutyCycle = 10;
 
 	// Initialize TIM2 + CHANNELS
 	GP_TIM_PWM_INIT(&TIM2_PWM);  // Initialize with CH1 disabled

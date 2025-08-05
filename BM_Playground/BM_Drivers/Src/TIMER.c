@@ -132,12 +132,12 @@ void GP_TIM_Control(GP_TIM_RegDef_t *pTIMx, uint8_t EN_or_DS) {
 	}
 }
 
-void GP_TIM_PWM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t channel, uint8_t PWM_ON) {
+void GP_TIM_PWM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t channel, uint8_t PWM_STATE) {
 	if (channel > 3) return;
 
-	uint32_t ccer_mask = (1 << (channel * 4)); // CCxE bit
+	//		uint32_t ccer_mask = (1 << (channel * 4)); // CCxE bit
 
-	if (PWM_ON) {
+	if (PWM_STATE == PWM_OUTPUT) {
 		// Make sure duty is set first
 		uint16_t duty = (uint16_t)((pGP_TIM_Handle->GP_TIM_Config.CH_Setup[channel].DutyCycle / 100.0f) *
 				pGP_TIM_Handle->GP_TIM_Config.Period);
@@ -148,18 +148,24 @@ void GP_TIM_PWM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t channel, uint8_
 		case CH4: pGP_TIM_Handle->pTIMx->CCR4 = duty; break;
 		}
 
-		pGP_TIM_Handle->pTIMx->CCER |= ccer_mask; // Enable output
-	} else {
-		//uint16_t duty = 0;
-		//switch(channel) {
-		//case CH1: pGP_TIM_Handle->pTIMx->CCR1 = duty; break;
-		//case CH2: pGP_TIM_Handle->pTIMx->CCR2 = duty; break;
-		//case CH3: pGP_TIM_Handle->pTIMx->CCR3 = duty; break;
-		//case CH4: pGP_TIM_Handle->pTIMx->CCR4 = duty; break;
-		//}
-		pGP_TIM_Handle->pTIMx->CCER &= ~ccer_mask; // Disable output
+//		pGP_TIM_Handle->pTIMx->CCER |= ccer_mask; // Enable output
+	} else if(PWM_STATE == PWM_STOP)
+	{
+		uint16_t duty = 0;
+		switch(channel) {
+		case CH1: pGP_TIM_Handle->pTIMx->CCR1 = duty; break;
+		case CH2: pGP_TIM_Handle->pTIMx->CCR2 = duty; break;
+		case CH3: pGP_TIM_Handle->pTIMx->CCR3 = duty; break;
+		case CH4: pGP_TIM_Handle->pTIMx->CCR4 = duty; break;
+		}
+	}
+	else
+	{
+		//pGP_TIM_Handle->pTIMx->CCER &= ~ccer_mask; // Disable output
 	}
 
 
 }
+
+
 

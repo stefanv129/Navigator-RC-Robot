@@ -220,7 +220,7 @@ void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi)
 		}
 	}
 
-}//SHORTEN FUNCTION!!!
+}
 
 
 void GPIO_IRQHandling(uint8_t PinNumber)

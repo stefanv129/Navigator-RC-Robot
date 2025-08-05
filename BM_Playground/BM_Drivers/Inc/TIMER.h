@@ -34,8 +34,11 @@
 #define PRESCALER_16K 15999
 #define DutyCycle_80 80
 #define DutyCycle_60 60
+#define DutyCycle_40 40
+#define DutyCycle_30 30
 
 #define PWM_OUTPUT  1
+#define PWM_STOP  	2
 #define PWM_OFF     0
 #define GND 		0
 
@@ -102,5 +105,5 @@ void GP_TIM_PWM_INIT(GP_TIM_Handle_t *pGP_TIM_Handle);
 void AD_TIM_CDN_INIT(AD_TIM_Handle_t *pAD_TIM_Handle);
 void GP_TIM_SetChannel(GP_TIM_RegDef_t *pTIMx, uint8_t ch, uint16_t duty, uint8_t mode, uint8_t enable_output);
 void GP_TIM_Control(GP_TIM_RegDef_t *pTIMx, uint8_t EN_or_DS);
-void GP_TIM_PWM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t Channel, uint8_t Enable);
+void GP_TIM_PWM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t channel, uint8_t PWM_STATE);
 #endif /* INC_TIMER_H_ */

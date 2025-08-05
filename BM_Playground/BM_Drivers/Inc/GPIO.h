@@ -75,6 +75,9 @@
 #define GPIO_PIN_PD			2
 
 #define EXTI4_IRQ			10
+#define EXTI9_5_IRQ			23
+#define EXTI15_10_IRQ			40
+#define EXTI0_IRQ			6
 
 typedef struct{
 	uint8_t GPIO_PinNumber;

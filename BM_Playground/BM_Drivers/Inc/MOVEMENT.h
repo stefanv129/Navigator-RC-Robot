@@ -36,6 +36,8 @@ void drive_FWD(GP_TIM_Handle_t *pGP_TIM_Handle);
 void turn_RGT(GP_TIM_Handle_t *pGP_TIM_Handle);
 void turn_LFT(GP_TIM_Handle_t *pGP_TIM_Handle);
 void go_IDLE(GP_TIM_Handle_t *pGP_TIM_Handle);
+void stop_FWD(GP_TIM_Handle_t *pGP_TIM_Handle);
+void ramp_FWD(GP_TIM_Handle_t *pGP_TIM_Handle);
 
 //typedef enum {
 //    SEARCH_STATE,

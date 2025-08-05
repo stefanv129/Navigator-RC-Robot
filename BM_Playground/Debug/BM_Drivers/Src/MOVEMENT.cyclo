@@ -1,7 +1,10 @@
 MOVEMENT.c:20:6:seed_random	1
 MOVEMENT.c:24:9:calc_turn_time	1
 MOVEMENT.c:32:9:choose_direction	2
-MOVEMENT.c:43:6:drive_FWD	1
-MOVEMENT.c:52:6:turn_RGT	1
-MOVEMENT.c:60:6:turn_LFT	1
-MOVEMENT.c:67:6:go_IDLE	1
+MOVEMENT.c:40:6:us_delay	2
+MOVEMENT.c:47:6:drive_FWD	1
+MOVEMENT.c:67:6:stop_FWD	1
+MOVEMENT.c:79:6:turn_RGT	1
+MOVEMENT.c:94:6:turn_LFT	1
+MOVEMENT.c:109:6:go_IDLE	1
+MOVEMENT.c:117:6:ramp_FWD	2

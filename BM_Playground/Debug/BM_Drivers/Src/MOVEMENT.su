@@ -1,7 +1,10 @@
 ../BM_Drivers/Src/MOVEMENT.c:20:6:seed_random	16	static
 ../BM_Drivers/Src/MOVEMENT.c:24:9:calc_turn_time	16	static
 ../BM_Drivers/Src/MOVEMENT.c:32:9:choose_direction	16	static
-../BM_Drivers/Src/MOVEMENT.c:43:6:drive_FWD	16	static
-../BM_Drivers/Src/MOVEMENT.c:52:6:turn_RGT	16	static
-../BM_Drivers/Src/MOVEMENT.c:60:6:turn_LFT	16	static
-../BM_Drivers/Src/MOVEMENT.c:67:6:go_IDLE	16	static
+../BM_Drivers/Src/MOVEMENT.c:40:6:us_delay	24	static,ignoring_inline_asm
+../BM_Drivers/Src/MOVEMENT.c:47:6:drive_FWD	24	static
+../BM_Drivers/Src/MOVEMENT.c:67:6:stop_FWD	16	static
+../BM_Drivers/Src/MOVEMENT.c:79:6:turn_RGT	24	static
+../BM_Drivers/Src/MOVEMENT.c:94:6:turn_LFT	24	static
+../BM_Drivers/Src/MOVEMENT.c:109:6:go_IDLE	16	static
+../BM_Drivers/Src/MOVEMENT.c:117:6:ramp_FWD	32	static
