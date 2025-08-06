@@ -34,6 +34,14 @@
 #define START_PSW	12
 
 typedef enum {
+	NOT_TURNING = 0,
+	TURNING_RIGHT = 1,
+	TURNING_LEFT = 2,
+} DirectionState_t;
+
+DirectionState_t direction_state = NOT_TURNING;
+
+typedef enum {
 	STATE_IDLE,
 	STATE_DRIVING,
 	STATE_TURNING,
@@ -51,6 +59,8 @@ int16_t Y_POINT = 0; //current Y
 float ANGLE = 90;
 uint8_t INCREMENT = 0;
 uint32_t TURN_DURATION = 0;
+
+static uint8_t wall_detected = 0;
 
 //start at origin
 
@@ -82,6 +92,34 @@ void ms_delay(uint32_t time_ms) {
 	}
 }
 
+volatile uint8_t send_coords_flag = 0;
+
+void send_coordinates()
+{
+	//store coordinates +7cm (distance sensor measures 7 cm in front)
+	//will need to choose a fixed sensor distance
+
+	// Assume 7 cm in front
+	int16_t COORD_X = X_POINT + (int16_t)(7.0f * sinf(ANGLE * (M_PI / 180.0f)));
+	int16_t COORD_Y = Y_POINT + (int16_t)(7.0f * cosf(ANGLE * (M_PI / 180.0f)));
+
+	// Build packet
+	uint8_t data[5];
+	data[0] = 'S'; // Start byte
+
+	data[1] = (uint8_t)((COORD_X >> 8) & 0xFF); // X high byte
+	data[2] = (uint8_t)(COORD_X & 0xFF);        // X low byte
+
+	data[3] = (uint8_t)((COORD_Y >> 8) & 0xFF); // Y high byte
+	data[4] = (uint8_t)(COORD_Y & 0xFF);        // Y low byte
+
+	// Send 5 bytes over USART
+	USART_SendData(&USART1_TXRX, data, 5);
+	send_coords_flag = 0;
+}
+
+
+
 char msg[32] = "Password OK!\n";
 uint8_t password = 0;
 
@@ -97,79 +135,57 @@ int main(void) {
 	Full_I2C_Config();
 	init_random_seed();
 
-//	while(1){
-//		GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
-//		ms_delay(1000);
-//	}
 	ms_delay(500);
 
-	//	while(password != START_PSW){
-	//		USART_ReceiveData(&USART1_TXRX, &password, 1);
-	//		GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);//ON AGAIN
-	//	}
-	//
 	//	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
 
-	//while(1);
 	//use esp as server
 	//connect laptop to esp and send the condition via app
 	//maybe also use a stop condition?
 	//how far can ble reach?
 	//char start_condition = 0;
 
-	//	while(start_condition != START_PSW){
-	//		init_random_seed();
-	//		start_condition = read_bluetooth_message_from_uart();
-	//	};
-
-
-	//begin with drive FWD if start is initialized
-	//drive_FWD(&TIM2_PWM);
-	//current_state == STATE_DRIVING;
-
-	//when wall is sensed
 	while (1)
 	{
+
+		if(send_coords_flag){
+			send_coordinates();
+		}
+
 		if(current_state == STATE_DRIVING)
 		{
 			//float accel_g = raw_accel / 16384.0f;  // if FSR = ±2g
-			//INCREMENT = accel_g  * 10 ms
+			//INCREMENT = accel_g  * 50 ms
 			//			float angle_rad = ANGLE * (M_PI / 180.0f);
 			//			X_POINT += (int16_t)(INCREMENT * sinf(angle_rad));
 			//			Y_POINT += (int16_t)(INCREMENT * cosf(angle_rad));
+			//every 50 ms
 		}
 		else if(current_state == STATE_TURNING)
 		{
 			//float gyro_dps = raw_gyro / 65.5f;  // if FSR = ±500°/s
 			//angular_velocity = read_w_gyro(); => Z, last 2 bytes of the 6 read
+			//use direction_state?
 			//ANGLE = (ANGLE + calc_rotation(10ms,w))%360;
 		}
 		else if(current_state == STATE_IDLE)
 		{
 			USART_ReceiveData(&USART1_TXRX, &password, 1);
-			//will block here until it receives data
 			GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
 			if(password == START_PSW)
 			{
 				//START CONDITION basically
-
 				current_state = STATE_DRIVING;
 				drive_FWD(&TIM2_PWM);
 				GPIO_IRQInterruptConfig(EXTI4_IRQ, ENABLE);
 				GPIO_Write_Pin(GPIOC, GPIO_PIN_NO_13, DISABLE);
-				//ms_delay(2000);
-				//go_IDLE(&TIM2_PWM);
-				//stop_FWD(&TIM2_PWM);
-				//ms_delay(2000);
-				//drive_FWD(&TIM2_PWM);
-
-
 			}
 		}
-		//srand(X_POINT%Y_POINT*ANGLE);
-		ms_delay(10);
-		//10 ms delay lets say => update every 10 ms
+
+		ms_delay(50);
+		//based on rc car speed we should decide this delay
 		//timer duration becomes irrelevant this way
+		//state tells us what to increment angle or coordinates
 		//only state dictates
 	}
 	return 0;
@@ -177,72 +193,52 @@ int main(void) {
 
 
 
-void  EXTI4_IRQHandler(void) //WALL SENSED
+void EXTI4_IRQHandler(void) //WALL SENSED
 {
 	stop_FWD(&TIM2_PWM);
-	//store coordinates +7cm (distance sensor measures 7 cm in front)
 
-	//	int16_t COORD_X = X_POINT + 7 * sin(ANGLE * DEG_TO_RAD);
-	//  int16_t COORD_Y = Y_POINT + 7 * cos(ANGLE * DEG_TO_RAD);
-	// if we use 1cm as reference (maybe too much)
-
-	//srand(COORD_X - COORD_Y); //good seed here
-
-	//send coords via UART to ESP32 => only COORD_X and COORD_Y
-	//they need to be parsed to be read
-	//ESP should aknowledge the data
-
-	//if esp has received stop condition we go to idle state and navigation stops
-	//esp32 sends them to laptop
-
-	//stop_FWD(&TIM2_PWM);
-	//GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
-	//ms_delay(100);
-
+	send_coords_flag = 1;
+	//srand(X_POINT - Y_POINT); //could seed here
 
 	GPIO_IRQHandling(GPIO_PIN_NO_4);
 	ms_delay(400);
 	uint32_t turn_duration = get_random_duration();
 
 	if(!GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4)){
+
+		wall_detected = 1;
 		GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,DISABLE);
 		current_state = STATE_TURNING;
 
 		if(!(turn_duration % 2))
 		{
+			direction_state = TURNING_RIGHT;
 			turn_RGT(&TIM2_PWM);
 		}
 		else
 		{
+			direction_state = TURNING_LEFT;
 			turn_LFT(&TIM2_PWM);
 		}
-
 	}
 	else //sensing stopped
 	{
-		AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,turn_duration);
-		//increment angle for timer duration
-	}
+		if (wall_detected) {
+			wall_detected = 0;
+			AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,turn_duration);//turn a little bit more
+			//return to turning logic in while
+		}
 
+	}
 }
 
 
-void TIM1_UP_TIM10_IRQHandler(void) //ROTATION TIME OVER
+void TIM1_UP_TIM10_IRQHandler(void)
 {
-	//	while(!(GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4))){
-	//		//angular_velocity = read_w_gyro();
-	//		//ANGLE = ANGLE + calc_rotation(10ms,angular_velocity);
-	//		//10 ms delay as well
-	//	}
-	//walls still sensed
-	//turn until they are gone
-	//bad in interrupt but it is a good failsafe if car is stuck
-
+	direction_state = NOT_TURNING;
 	GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,ENABLE);
-
 	current_state = STATE_DRIVING;
 	drive_FWD(&TIM2_PWM);
-
 	TIM1_CDN.pTIMx->SR &= ~TIM_SR_UIF;
 }
 
