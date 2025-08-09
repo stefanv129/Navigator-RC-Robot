@@ -100,9 +100,9 @@ typedef struct{
 	GP_TIM_Config_t GP_TIM_Config;
 }GP_TIM_Handle_t;
 
-void AD_TIM_Start_Countdown(AD_TIM_RegDef_t *pTIMx, uint32_t time_ms);
+void AD_TIM_Start_FreeRun(AD_TIM_RegDef_t *pTIMx, uint32_t time_ms);
 void GP_TIM_PWM_INIT(GP_TIM_Handle_t *pGP_TIM_Handle);
-void AD_TIM_CDN_INIT(AD_TIM_Handle_t *pAD_TIM_Handle);
+void AD_TIM_FreeRun_INIT(AD_TIM_Handle_t *pAD_TIM_Handle);
 void GP_TIM_SetChannel(GP_TIM_RegDef_t *pTIMx, uint8_t ch, uint16_t duty, uint8_t mode, uint8_t enable_output);
 void GP_TIM_Control(GP_TIM_RegDef_t *pTIMx, uint8_t EN_or_DS);
 void GP_TIM_PWM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t channel, uint8_t PWM_STATE);

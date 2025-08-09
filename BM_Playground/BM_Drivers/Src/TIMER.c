@@ -9,52 +9,47 @@
 
 #include "TIMER.h"
 
-void AD_TIM_Start_Countdown(AD_TIM_RegDef_t *pTIMx, uint32_t time_ms) {
+void AD_TIM_Start_FreeRun(AD_TIM_RegDef_t *pTIMx, uint32_t time_ms) {
 	pTIMx->CR1 &= ~TIM_CR1_CEN;
 	while((pTIMx->CR1 & TIM_CR1_CEN) != 0);
 	// Clear any pending update flag
 	pTIMx->SR &= ~TIM_SR_UIF;
 
 	// Configure for single countdown
-	pTIMx->CNT = time_ms - 1;;  // Load counter this doesnt set count to 0...
-	pTIMx->ARR = time_ms - 1;  // Count from this value down to 0
-	// Generate update to load registers
+	pTIMx->CNT = 0;
+
 	pTIMx->EGR |= TIM_EGR_UG;
 
 	pTIMx->CR1 |= TIM_CR1_CEN;
 	while((pTIMx->CR1 & TIM_CR1_CEN) == 0);
 	// Clear update flag
 }
-//could just use timer handle instead
 
 
 
-void AD_TIM_CDN_INIT(AD_TIM_Handle_t *pAD_TIM_Handle) {
 
-	if (pAD_TIM_Handle->pTIMx == TIM1) {
-		TIM1_PCLK_EN();
-	}
+void AD_TIM_FreeRun_INIT(AD_TIM_Handle_t *pAD_TIM_Handle) {
+    if (pAD_TIM_Handle->pTIMx == TIM1) {
+        TIM1_PCLK_EN();
+    }
 
-	//HANDLE INTERRUPTS
-	*NVIC_ISER0 |= TIM1_UP_IRQ;
-	pAD_TIM_Handle->pTIMx->DIER |= TIM_DIER_UIE;
-	//IS CLOCK NEEDED FORE SETTING REGS?
+    // Count up
+    pAD_TIM_Handle->pTIMx->CR1 &= ~TIM_CR1_DIR;
 
-	// Set timer UEV to only overflow
-	pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_URS;
+    // Auto-Reload Preload
+    pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_ARPE;
 
-	// Set timer direction to downcounting
-	pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_DIR;
+    // Max ARR
+    pAD_TIM_Handle->pTIMx->ARR = 0xFFFF;
 
-	// Enable Auto-Reload Preload (recommended for stability)
-	pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_ARPE;
+    // Prescaler (set before calling or assign here)
+    pAD_TIM_Handle->pTIMx->PSC = pAD_TIM_Handle->AD_TIM_Config.Prescaler;
 
-	// Set prescaler
-	pAD_TIM_Handle->pTIMx->PSC = pAD_TIM_Handle->AD_TIM_Config.Prescaler;
+    // Load PSC and ARR immediately
+    pAD_TIM_Handle->pTIMx->EGR |= TIM_EGR_UG;
 
-	// Force update event to load PSC immediately
-	pAD_TIM_Handle->pTIMx->EGR |= TIM_EGR_UG;
-
+    // Start free-running timer
+    pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_CEN;
 }
 
 //TIM2 exclusivelyy used for PWM outputs now
@@ -148,7 +143,7 @@ void GP_TIM_PWM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t channel, uint8_
 		case CH4: pGP_TIM_Handle->pTIMx->CCR4 = duty; break;
 		}
 
-//		pGP_TIM_Handle->pTIMx->CCER |= ccer_mask; // Enable output
+		//		pGP_TIM_Handle->pTIMx->CCER |= ccer_mask; // Enable output
 	} else if(PWM_STATE == PWM_STOP)
 	{
 		uint16_t duty = 0;

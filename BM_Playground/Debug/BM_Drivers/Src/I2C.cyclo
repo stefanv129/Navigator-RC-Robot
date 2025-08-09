@@ -1,2 +1,13 @@
-I2C.c:12:6:I2C_SM_INIT	1
-I2C.c:35:9:I2C_Master_Read_Reg	8
+I2C.c:17:13:I2C_GenerateStartCondition	1
+I2C.c:23:13:I2C_ExecuteAddressPhaseWrite	1
+I2C.c:31:13:I2C_ExecuteAddressPhaseRead	1
+I2C.c:39:13:I2C_ClearADDRFlag	4
+I2C.c:83:6:I2C_GenerateStopCondition	1
+I2C.c:90:6:I2C_PeripheralControl	2
+I2C.c:103:6:I2C_PeriClockControl	2
+I2C.c:118:6:I2C_SM_INIT	1
+I2C.c:141:9:I2C_Master_Read_Reg	1
+I2C.c:207:9:I2C_GetFlagStatus	2
+I2C.c:216:6:I2C_MasterSendData	8
+I2C.c:262:6:I2C_MasterReceiveData	12
+I2C.c:344:6:I2C_ManageAcking	2

@@ -1,6 +1,6 @@
-../BM_Drivers/Src/TIMER.c:12:6:AD_TIM_Start_Countdown	16	static
-../BM_Drivers/Src/TIMER.c:32:6:AD_TIM_CDN_INIT	16	static
-../BM_Drivers/Src/TIMER.c:61:6:GP_TIM_PWM_INIT	48	static
-../BM_Drivers/Src/TIMER.c:94:6:GP_TIM_SetChannel	32	static
-../BM_Drivers/Src/TIMER.c:125:6:GP_TIM_Control	16	static
-../BM_Drivers/Src/TIMER.c:135:6:GP_TIM_PWM_Control	32	static
+../BM_Drivers/Src/TIMER.c:12:6:AD_TIM_Start_FreeRun	16	static
+../BM_Drivers/Src/TIMER.c:31:6:AD_TIM_FreeRun_INIT	16	static
+../BM_Drivers/Src/TIMER.c:56:6:GP_TIM_PWM_INIT	48	static
+../BM_Drivers/Src/TIMER.c:89:6:GP_TIM_SetChannel	32	static
+../BM_Drivers/Src/TIMER.c:120:6:GP_TIM_Control	16	static
+../BM_Drivers/Src/TIMER.c:130:6:GP_TIM_PWM_Control	32	static

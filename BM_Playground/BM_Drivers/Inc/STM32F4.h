@@ -18,6 +18,9 @@
 #define SET		ENABLE
 #define RESET	DISABLE
 
+#define FLAG_SET	SET
+#define FLAG_RESET	RESET
+
 #define __vl 	volatile
 /* ^ MACROS DEFINED HERE ^ */
 

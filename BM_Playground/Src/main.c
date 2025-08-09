@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "GPIO.h"
 #include "RCC.h"
 #include "TIMER.h"
@@ -45,40 +46,45 @@ typedef enum {
 	STATE_IDLE,
 	STATE_DRIVING,
 	STATE_TURNING,
+	STATE_STOPPED,
 } RobotState_t;
 
 RobotState_t current_state = STATE_IDLE;
 
 GP_TIM_Handle_t TIM2_PWM;
-AD_TIM_Handle_t TIM1_CDN;
+AD_TIM_Handle_t TIM1_TMR;
 I2C_Handle_t I2C1_RX;
 USART_Handle_t USART1_TXRX;
 
 int16_t X_POINT = 0; //current X
 int16_t Y_POINT = 0; //current Y
-float ANGLE = 90;
+float ANGLE = 270;
 uint8_t INCREMENT = 0;
-uint32_t TURN_DURATION = 0;
-
-static uint8_t wall_detected = 0;
+volatile uint16_t DRIVING_START_TIME = 0;  // global
+volatile uint16_t DRIVING_ELAPSED_TIME = 0;  // global
+volatile uint16_t TURNING_START_TIME = 0;  // global
+volatile uint16_t TURNING_ELAPSED_TIME = 0;  // global
+volatile uint8_t calc_angle_flag = 0;
+volatile uint8_t send_coords_flag = 0;
 
 //start at origin
 
 void init_random_seed(void);
-uint32_t get_random_duration(void);
+uint16_t get_random_direction(void);
 void Full_RCC_Config(void);
 void Full_GPIO_Config(void);
 void Full_GP_TIM_Config(void);
 void Full_AD_TIM_Config(void);
 void Full_I2C_Config(void);
 void Full_USART_Config(void);
+uint16_t get_elapsed_time(AD_TIM_RegDef_t *pTIMx, uint16_t start);
 
 void init_random_seed(void) {
-	srand(129);  // Seed with x,y coords/angle
+	srand(TIM1_TMR.pTIMx->CNT);  // Seed with x,y coords/angle
 }
 
-uint32_t get_random_duration(void) {
-	return 250 + (rand() % 451);  // Between 50 - 200 ms lets say
+uint16_t get_random_direction(void) {
+	return 150 + (rand() % 450);  // Between 50 - 200 ms lets say
 	//what is maximum rand value?
 }
 
@@ -87,45 +93,88 @@ uint16_t calc_rotation(uint32_t duration_ms, float angular_velocity_dps) {
 }
 
 void ms_delay(uint32_t time_ms) {
-	for(volatile uint32_t i = 0; i < time_ms * 1000; ++i) {
+	for(volatile uint32_t i = 0; i < time_ms * 1055; ++i) {
 		__asm__("nop");
 	}
 }
 
-volatile uint8_t send_coords_flag = 0;
-
-void send_coordinates()
+uint16_t get_current_time(AD_TIM_RegDef_t *pTIMx)
 {
-	//store coordinates +7cm (distance sensor measures 7 cm in front)
-	//will need to choose a fixed sensor distance
-
-	// Assume 7 cm in front
-	int16_t COORD_X = X_POINT + (int16_t)(7.0f * sinf(ANGLE * (M_PI / 180.0f)));
-	int16_t COORD_Y = Y_POINT + (int16_t)(7.0f * cosf(ANGLE * (M_PI / 180.0f)));
-
-	// Build packet
-	uint8_t data[5];
-	data[0] = 'S'; // Start byte
-
-	data[1] = (uint8_t)((COORD_X >> 8) & 0xFF); // X high byte
-	data[2] = (uint8_t)(COORD_X & 0xFF);        // X low byte
-
-	data[3] = (uint8_t)((COORD_Y >> 8) & 0xFF); // Y high byte
-	data[4] = (uint8_t)(COORD_Y & 0xFF);        // Y low byte
-
-	// Send 5 bytes over USART
-	USART_SendData(&USART1_TXRX, data, 5);
-	send_coords_flag = 0;
+	uint16_t time = pTIMx->CNT;
+	return time;
 }
 
 
+uint16_t get_elapsed_time(AD_TIM_RegDef_t *pTIMx, uint16_t start)
+{
+	uint16_t now = pTIMx->CNT;
+	uint16_t elapsed;
 
-char msg[32] = "Password OK!\n";
+	if (now >= start) {
+		elapsed = now - start;
+	} else {
+		elapsed = (0xFFFF - start) + now + 1; // handle overflow
+	}
+	return elapsed - 25;//error
+}
+
+void send_coordinates()
+{
+	//	DRIVING_ELAPSED_TIME = get_elapsed_time(TIM1, DRIVING_START_TIME);//how long driving took place
+	//	sprintf(msg2, "Drove for %u\r\n", DRIVING_ELAPSED_TIME);
+	//	USART_SendData(&USART1_TXRX, (uint8_t*)msg2, strlen(msg2));
+
+	//X_POINT = X_POINT + DRIVING_ELAPSED_TIME * speed * sinf(ANGLE * (M_PI / 180.0f);
+	//X_POINT = Y_POINT + DRIVING_ELAPSED_TIME * speed * cosf(ANGLE * (M_PI / 180.0f);
+
+	char msg[32];
+
+	X_POINT = X_POINT + (DRIVING_ELAPSED_TIME /100) * sinf(ANGLE * (M_PI / 180.0f));
+	Y_POINT = Y_POINT + (DRIVING_ELAPSED_TIME /100) * cosf(ANGLE * (M_PI / 180.0f));
+
+	int16_t COORD_X = X_POINT + (int16_t)(7.0f * sinf(ANGLE * (M_PI / 180.0f)));
+	int16_t COORD_Y = Y_POINT + (int16_t)(7.0f * cosf(ANGLE * (M_PI / 180.0f)));
+
+	sprintf(msg, "XPOINT: %d\r\n", X_POINT);
+	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
+	sprintf(msg, "YPOINT: %d\r\n", Y_POINT);
+	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
+
+	sprintf(msg, "COORD_X: %d\r\n", COORD_X);
+	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
+	sprintf(msg, "COORD_Y: %d\r\n", COORD_Y);
+	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
+
+
+	DRIVING_ELAPSED_TIME = 0;
+	DRIVING_START_TIME = 0;
+
+	//	srand(X_POINT - Y_POINT);
+	//
+	//	// Build packet
+	//	uint8_t data[5];
+	//	data[0] = 'S'; // Start byte
+	//
+	//	data[1] = (uint8_t)((COORD_X >> 8) & 0xFF); // X high byte
+	//	data[2] = (uint8_t)(COORD_X & 0xFF);        // X low byte
+	//
+	//	data[3] = (uint8_t)((COORD_Y >> 8) & 0xFF); // Y high byte
+	//	data[4] = (uint8_t)(COORD_Y & 0xFF);        // Y low byte
+
+	// Send 5 bytes over USART
+	//USART_SendData(&USART1_TXRX, data, 5);
+	//send_coords_flag = 0;
+
+	//would rather put this in the irq so it cant be distrubed by rt
+}
+
 uint8_t password = 0;
 
 
 
 int main(void) {
+
+	//while(1);
 
 	Full_RCC_Config();
 	Full_AD_TIM_Config();
@@ -134,10 +183,28 @@ int main(void) {
 	Full_USART_Config();
 	Full_I2C_Config();
 	init_random_seed();
-
 	ms_delay(500);
 
-	//	USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
+
+	//	while(1) {
+	//	    uint16_t current_time = get_current_time(TIM1);
+	//	    char time_msg[32];
+	//
+	//	    // Add \r\n for proper line break
+	//	    sprintf(time_msg, "TIM1 CNT: %u\r\n", current_time);
+	//
+	//	    // Send via UART
+	//	    USART_SendData(&USART1_TXRX, (uint8_t*)time_msg, strlen(time_msg));
+	//
+	//	    ms_delay(15000);  // Delay to avoid flooding the UART
+	//
+	//	    uint16_t elapsed = get_elapsed_time(TIM1, current_time);
+	//	    sprintf(time_msg, "elapsed: %u\r\n", elapsed);
+	//	    USART_SendData(&USART1_TXRX, (uint8_t*)time_msg, strlen(time_msg));
+	//	    ms_delay(5000);
+	//	}
+
+
 
 	//use esp as server
 	//connect laptop to esp and send the condition via app
@@ -145,17 +212,27 @@ int main(void) {
 	//how far can ble reach?
 	//char start_condition = 0;
 
+
 	while (1)
 	{
 
-		if(send_coords_flag){
-			send_coordinates();
+		//		if(send_coords_flag){
+		//			send_coordinates();
+		//		}
+
+		if(calc_angle_flag){
+			//use ELAPSED TIME and angular_velocity to calc angle
+			//calc_angle();
+			calc_angle_flag = 0;
+			DRIVING_START_TIME = get_current_time(TIM1);
+			DRIVING_ELAPSED_TIME = 0;
 		}
 
 		if(current_state == STATE_DRIVING)
 		{
 			//float accel_g = raw_accel / 16384.0f;  // if FSR = ±2g
 			//INCREMENT = accel_g  * 50 ms
+			//			INCREMENT = 1;
 			//			float angle_rad = ANGLE * (M_PI / 180.0f);
 			//			X_POINT += (int16_t)(INCREMENT * sinf(angle_rad));
 			//			Y_POINT += (int16_t)(INCREMENT * cosf(angle_rad));
@@ -167,6 +244,7 @@ int main(void) {
 			//angular_velocity = read_w_gyro(); => Z, last 2 bytes of the 6 read
 			//use direction_state?
 			//ANGLE = (ANGLE + calc_rotation(10ms,w))%360;
+			// Check if wall is no longer detected
 		}
 		else if(current_state == STATE_IDLE)
 		{
@@ -176,17 +254,29 @@ int main(void) {
 			{
 				//START CONDITION basically
 				current_state = STATE_DRIVING;
+				char msg[32];
 				drive_FWD(&TIM2_PWM);
+				DRIVING_START_TIME = get_current_time(TIM1);
+				sprintf(msg, "StartedDrivingAt %u\r\n", DRIVING_START_TIME);
+				USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
+
 				GPIO_IRQInterruptConfig(EXTI4_IRQ, ENABLE);
-				GPIO_Write_Pin(GPIOC, GPIO_PIN_NO_13, DISABLE);
+				//GPIO_Write_Pin(GPIOC, GPIO_PIN_NO_13, DISABLE);
+				//AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,2000);
 			}
+		}
+		else if(current_state == STATE_STOPPED)
+		{
+
 		}
 
 		ms_delay(50);
-		//based on rc car speed we should decide this delay
-		//timer duration becomes irrelevant this way
-		//state tells us what to increment angle or coordinates
-		//only state dictates
+
+		//uint16_t current_time = get_current_time(TIM1);
+		//	    char time_msg[32];
+		//
+		//	    // Add \r\n for proper line break
+		//	    sprintf(time_msg, "TIM1 CNT: %u\r\n", current_time);
 	}
 	return 0;
 }
@@ -195,22 +285,36 @@ int main(void) {
 
 void EXTI4_IRQHandler(void) //WALL SENSED
 {
-	stop_FWD(&TIM2_PWM);
+	//GPIO_IRQInterruptConfig(EXTI4_IRQ, DISABLE);
+	GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,DISABLE);
 
-	send_coords_flag = 1;
-	//srand(X_POINT - Y_POINT); //could seed here
+	//send coords here maybe
 
-	GPIO_IRQHandling(GPIO_PIN_NO_4);
-	ms_delay(400);
-	uint32_t turn_duration = get_random_duration();
+
 
 	if(!GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4)){
+		char msg2[32];
+		sprintf(msg2, "StoppedDrivingAt %u\r\n", get_current_time(TIM1));
+		USART_SendData(&USART1_TXRX, (uint8_t*)msg2, strlen(msg2));
+		stop_FWD(&TIM2_PWM);//driving stops here
+		DRIVING_ELAPSED_TIME = get_elapsed_time(TIM1, DRIVING_START_TIME);//how long driving took place
+		sprintf(msg2, "DroveFor %u\r\n", DRIVING_ELAPSED_TIME);
+		USART_SendData(&USART1_TXRX, (uint8_t*)msg2, strlen(msg2));
 
-		wall_detected = 1;
-		GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,DISABLE);
+		send_coordinates();
+		ms_delay(500);
+
+		//send_coords_flag = 1;
+		//send coords here
+
 		current_state = STATE_TURNING;
+		calc_angle_flag = 0;
+		TURNING_ELAPSED_TIME = 0;
+		uint16_t turn_dir = get_random_direction();
+		sprintf(msg2, "RandomDir: %u\r\n", (uint16_t)turn_dir);
+		USART_SendData(&USART1_TXRX, (uint8_t*)msg2, strlen(msg2));
 
-		if(!(turn_duration % 2))
+		if(!(turn_dir % 2))
 		{
 			direction_state = TURNING_RIGHT;
 			turn_RGT(&TIM2_PWM);
@@ -220,28 +324,34 @@ void EXTI4_IRQHandler(void) //WALL SENSED
 			direction_state = TURNING_LEFT;
 			turn_LFT(&TIM2_PWM);
 		}
+		TURNING_START_TIME = get_current_time(TIM1);
+		sprintf(msg2, "StartedTurningAt %u\r\n", TURNING_START_TIME);
+		USART_SendData(&USART1_TXRX, (uint8_t*)msg2, strlen(msg2));
 	}
-	else //sensing stopped
-	{
-		if (wall_detected) {
-			wall_detected = 0;
-			AD_TIM_Start_Countdown(TIM1_CDN.pTIMx,turn_duration);//turn a little bit more
-			//return to turning logic in while
-		}
+	else{
+		ms_delay(50);
+		char msg3[32];
+		stop_FWD(&TIM2_PWM);//turning stops here
+		sprintf(msg3, "StoppedTurningAt %u\r\n", get_current_time(TIM1));
+		USART_SendData(&USART1_TXRX, (uint8_t*)msg3, strlen(msg3));
+		TURNING_ELAPSED_TIME = get_elapsed_time(TIM1,TURNING_START_TIME);
+		sprintf(msg3, "TurnedFor %u\r\n", TURNING_ELAPSED_TIME);
+		USART_SendData(&USART1_TXRX, (uint8_t*)msg3, strlen(msg3));
 
+		ms_delay(500);
+		send_coords_flag = 0;
+		calc_angle_flag = 1;
+
+		current_state = STATE_DRIVING;
+		DRIVING_START_TIME = get_current_time(TIM1);
+		drive_FWD(&TIM2_PWM);
+		sprintf(msg3, "StartedDrivingAt %u\r\n", DRIVING_START_TIME);
+		USART_SendData(&USART1_TXRX, (uint8_t*)msg3, strlen(msg3));
+		GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,ENABLE);
 	}
+	GPIO_IRQHandling(GPIO_PIN_NO_4);
+	//GPIO_IRQInterruptConfig(EXTI4_IRQ, ENABLE);
 }
-
-
-void TIM1_UP_TIM10_IRQHandler(void)
-{
-	direction_state = NOT_TURNING;
-	GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,ENABLE);
-	current_state = STATE_DRIVING;
-	drive_FWD(&TIM2_PWM);
-	TIM1_CDN.pTIMx->SR &= ~TIM_SR_UIF;
-}
-
 
 void Full_RCC_Config(void){
 	RCC_Handle_t RCC_Handle;
@@ -265,13 +375,13 @@ void Full_GPIO_Config(void){
 	GpioLED.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
 	// SENSOR CONFIG
-	// GPIO Configuration for GpioSensor PB0 = GPIO INTERRUPT
+	// GPIO Configuration for GpioSensor PA4 = GPIO INTERRUPT
 	GPIO_Handle_t GpioSensor;
 	GpioSensor.pGPIOx = GPIOA;
 	GpioSensor.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_4;
 	GpioSensor.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_IT_RFT;
-	GpioSensor.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
-	GpioSensor.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PIN_PU;
+	GpioSensor.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_LOW;
+	GpioSensor.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
 	// UART CONFIG
 	// GPIO Configuration for UART_TX PA9 = UART_TX
@@ -371,24 +481,24 @@ void Full_GP_TIM_Config(void){
 
 	// GP Timer Configuration
 	TIM2_PWM.pTIMx = TIM2;
-	TIM2_PWM.GP_TIM_Config.Prescaler = 6;
+	TIM2_PWM.GP_TIM_Config.Prescaler = 4;
 	TIM2_PWM.GP_TIM_Config.Period = 6400;
 
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].DutyCycle = 10;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].DutyCycle = 0;
 
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].DutyCycle = 10;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].DutyCycle = 0;
 
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].DutyCycle = 10;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].DutyCycle = 0;
 
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].DutyCycle = 10;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].DutyCycle = 0;
 
 	// Initialize TIM2 + CHANNELS
 	GP_TIM_PWM_INIT(&TIM2_PWM);  // Initialize with CH1 disabled
@@ -397,12 +507,13 @@ void Full_GP_TIM_Config(void){
 void Full_AD_TIM_Config(void){
 
 	// AD Timer Configuration
-	TIM1_CDN.pTIMx = TIM1;
+	TIM1_TMR.pTIMx = TIM1;
 
 	//TIM1_CDN.AD_TIM_Config.ClockDivision = 4;
-	TIM1_CDN.AD_TIM_Config.Prescaler = PRESCALER_16K;
-	AD_TIM_CDN_INIT(&TIM1_CDN);
+	TIM1_TMR.AD_TIM_Config.Prescaler = PRESCALER_16K;
+	AD_TIM_FreeRun_INIT(&TIM1_TMR);
 }
+
 
 void Full_I2C_Config(void){
 	I2C1_RX.pI2Cx = I2C1;

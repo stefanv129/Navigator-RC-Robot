@@ -1,2 +1,13 @@
-../BM_Drivers/Src/I2C.c:12:6:I2C_SM_INIT	24	static
-../BM_Drivers/Src/I2C.c:35:9:I2C_Master_Read_Reg	24	static
+../BM_Drivers/Src/I2C.c:17:13:I2C_GenerateStartCondition	16	static
+../BM_Drivers/Src/I2C.c:23:13:I2C_ExecuteAddressPhaseWrite	16	static
+../BM_Drivers/Src/I2C.c:31:13:I2C_ExecuteAddressPhaseRead	16	static
+../BM_Drivers/Src/I2C.c:39:13:I2C_ClearADDRFlag	24	static
+../BM_Drivers/Src/I2C.c:83:6:I2C_GenerateStopCondition	16	static
+../BM_Drivers/Src/I2C.c:90:6:I2C_PeripheralControl	16	static
+../BM_Drivers/Src/I2C.c:103:6:I2C_PeriClockControl	16	static
+../BM_Drivers/Src/I2C.c:118:6:I2C_SM_INIT	24	static
+../BM_Drivers/Src/I2C.c:141:9:I2C_Master_Read_Reg	16	static
+../BM_Drivers/Src/I2C.c:207:9:I2C_GetFlagStatus	16	static
+../BM_Drivers/Src/I2C.c:216:6:I2C_MasterSendData	24	static
+../BM_Drivers/Src/I2C.c:262:6:I2C_MasterReceiveData	32	static
+../BM_Drivers/Src/I2C.c:344:6:I2C_ManageAcking	16	static
