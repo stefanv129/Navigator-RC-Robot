@@ -76,3 +76,13 @@ Status Update 29/07/2025:
 -I think I have enough time for everything afterwards including the documentation
 
 
+Status Update 09/08/2025:
+-project is in final stage
+-started work on the python script to plot the coords
+-last part is reading from the giroscopic sensor
+-will need to adjust car wheels and sensor for more mechanical precision
+-also make compopnents more stable on the frame
+-will need to manually measure speed of car and average it
+-mpu9265 will only give us angular velocity on Z axis which is still useful
+-acceleration is not very helpful since car has almost constant speed
+
