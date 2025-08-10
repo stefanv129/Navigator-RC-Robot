@@ -8,6 +8,7 @@
 
 #include "TIMER.h"
 #include "MOVEMENT.h"
+#include "GPIO.h"
 
 
 #define DRV8833_FREQ	20000
@@ -47,38 +48,45 @@ void us_delay(uint32_t time_us) {
 void drive_FWD(GP_TIM_Handle_t *pGP_TIM_Handle){
 
 	pGP_TIM_Handle->pTIMx->CCER = 0;
-
+	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, DISABLE);
 
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,PWM_OUTPUT);
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH3,PWM_OUTPUT);
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH2,GND);
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,GND);
 
-	uint32_t ccer_mask = ((1 << 4 * CH1) | (1 << 4 * CH3)) & ~((1 << 4 * CH2) | (1 << 4 * CH4));
-	pGP_TIM_Handle->pTIMx->CCER |= ccer_mask; // Enable output
 
-	//GP_TIM_Control(pGP_TIM_Handle->pTIMx, ENABLE);
-	//one wheel turns faster at startup...
-	//increase duty linearly?
+	// Enable CH1, CH3
+	pGP_TIM_Handle->pTIMx->CCER |= (1 << (4 * CH1)) | (1 << (4 * CH3));
+
+	// Disable CH2, CH4
+	pGP_TIM_Handle->pTIMx->CCER &= ~((1 << (4 * CH2)) | (1 << (4 * CH4)));
+
 
 	pGP_TIM_Handle->pTIMx->EGR |= (1 << 0);
+
+	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, ENABLE);//connected to sleep
 }
 
 void stop_FWD(GP_TIM_Handle_t *pGP_TIM_Handle){
+
+	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, DISABLE);
 
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,PWM_STOP);
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH3,PWM_STOP);
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH2,PWM_STOP);
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,PWM_STOP);
 
-
+	pGP_TIM_Handle->pTIMx->CCER &= ~((1 << (4 * CH2)) | (1 << (4 * CH4)) | (1 << (4 * CH1)) | (1 << (4 * CH3)));
 
 	pGP_TIM_Handle->pTIMx->EGR |= (1 << 0);
+	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, ENABLE);
 }
 
 void turn_RGT(GP_TIM_Handle_t *pGP_TIM_Handle){
 
 	pGP_TIM_Handle->pTIMx->CCER = 0;
+	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, DISABLE);
 
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,PWM_OUTPUT);
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH3,GND);
@@ -89,11 +97,14 @@ void turn_RGT(GP_TIM_Handle_t *pGP_TIM_Handle){
 	pGP_TIM_Handle->pTIMx->CCER |= ccer_mask;
 
 	pGP_TIM_Handle->pTIMx->EGR |= (1 << 0);
+
+	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, ENABLE);
 }
 
 void turn_LFT(GP_TIM_Handle_t *pGP_TIM_Handle){
 
 	pGP_TIM_Handle->pTIMx->CCER = 0;
+	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, DISABLE);
 
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,GND);
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH3,PWM_OUTPUT);
@@ -104,33 +115,11 @@ void turn_LFT(GP_TIM_Handle_t *pGP_TIM_Handle){
 	pGP_TIM_Handle->pTIMx->CCER |= ccer_mask;
 
 	pGP_TIM_Handle->pTIMx->EGR |= (1 << 0);
-}
 
-void go_IDLE(GP_TIM_Handle_t *pGP_TIM_Handle){
-	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,GND);
-	GP_TIM_PWM_Control(pGP_TIM_Handle,CH3,GND);
-	GP_TIM_PWM_Control(pGP_TIM_Handle,CH2,GND);
-	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,GND);
+	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, ENABLE);
 }
 
 
-void ramp_FWD(GP_TIM_Handle_t *pGP_TIM_Handle){
 
-	uint16_t duty = (uint16_t)((pGP_TIM_Handle->GP_TIM_Config.CH_Setup[CH1].DutyCycle / 100.0f) *
-					pGP_TIM_Handle->GP_TIM_Config.Period);
-	GP_TIM_PWM_Control(pGP_TIM_Handle,CH2,GND);
-	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,GND);
 
-	pGP_TIM_Handle->pTIMx->EGR |= (1 << 0);
-
-	for(volatile int i = 0; i < duty; i++){
-		pGP_TIM_Handle->pTIMx->CCR1 = i;
-		pGP_TIM_Handle->pTIMx->EGR |= (1 << 0);
-
-		pGP_TIM_Handle->pTIMx->CCR3 = i;
-		pGP_TIM_Handle->pTIMx->EGR |= (1 << 0);
-		us_delay(100);
-	}
-
-}
 //CONTROL WILL WORK LIKE THIS, CAR ENTERS X STATE FOR Y TIME => Z TURN ANGLE
