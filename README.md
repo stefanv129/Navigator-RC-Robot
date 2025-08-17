@@ -86,7 +86,7 @@ Status Update 09/08/2025:
 -mpu9265 will only give us angular velocity on Z axis which is still useful
 -acceleration is not very helpful since car has almost constant speed
 
-Status Update 09/08/2025:
+Status Update 17/08/2025:
 -project is now functional
 -components are glued to frame
 -every change from now on is for betetr configurstion/testing
