@@ -86,3 +86,20 @@ Status Update 09/08/2025:
 -mpu9265 will only give us angular velocity on Z axis which is still useful
 -acceleration is not very helpful since car has almost constant speed
 
+Status Update 09/08/2025:
+-project is now functional
+-components are glued to frame
+-every change from now on is for betetr configurstion/testing
+-managed to slow down car even when using 7V batteries by toggling the sleep pin of drv8833 (which was a desperate but working solution)
+-the mapping of coordinates works decently well and is readable
+-the anggle of the car is being measured and calculated with at least 90% precision
+-the problem is the robot kit is not very well built and sometimes one wheel turns faster resulting in unwanted  strays
+-sensor also has a very narrow angle and robot is prettty bulky for its task
+-since tthe mpu6500 only measure acceleration the cars speed had to be measured manually
+-I considered the acceleration to be instant, the car moves at 90cm/sec (average speed)
+-this speed is used to calculate coordinates
+-I managed to improve the braking by making the car reverse for 5ms before stopping
+-aside from these hardware problems everything has been ttaken care of
+-this might be the last update if I cant fin anytthing else to improve on
+
+
