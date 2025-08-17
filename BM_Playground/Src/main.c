@@ -76,6 +76,16 @@ volatile uint8_t calc_angle_flag = 0;
 volatile uint8_t send_coords_flag = 0;
 volatile uint8_t wall_sensed = 0;
 volatile uint8_t stop_flag = 0;
+uint8_t password = 0;
+uint8_t coords_nr = 100;
+uint8_t count = 0;
+float gyro_z_bias = 0.0f;
+volatile uint16_t last_angle_update_time = 0;
+uint8_t AVG_BRAKING_DISTANCE = 20;//cm
+uint8_t IR_SENSOR_DISTANCE = 5;//cm
+float CM_PER_MS = 0.09f; //average measured speed, considering acceleration almost instantanous
+
+
 
 //start at origin
 
@@ -130,15 +140,6 @@ uint16_t get_elapsed_time(AD_TIM_RegDef_t *pTIMx, uint16_t start)
 }
 
 
-uint8_t password = 0;
-uint8_t coords_nr = 100;
-uint8_t count = 0;
-float gyro_z_bias = 0.0f;
-volatile uint16_t last_angle_update_time = 0;
-
-uint8_t AVG_BRAKING_DISTANCE = 0;
-uint8_t IR_SENSOR_DISTANCE = 0;
-//WHAT UNITS?
 
 
 #define MPU_ADDR 0x68
@@ -150,18 +151,10 @@ uint8_t IR_SENSOR_DISTANCE = 0;
 
 void send_coordinates()
 {
-	//	DRIVING_ELAPSED_TIME = get_elapsed_time(TIM1, DRIVING_START_TIME);//how long driving took place
-	//	sprintf(msg2, "Drove for %u\r\n", DRIVING_ELAPSED_TIME);
-	//	USART_SendData(&USART1_TXRX, (uint8_t*)msg2, strlen(msg2));
-
-	//X_POINT = X_POINT + DRIVING_ELAPSED_TIME * speed * sinf(ANGLE * (M_PI / 180.0f);
-	//X_POINT = Y_POINT + DRIVING_ELAPSED_TIME * speed * cosf(ANGLE * (M_PI / 180.0f);
-
 	//DRIVING_ELAPSED_TIME is in ms
-	//will have to modify here later once the speed of driving is measured
 
-	robot_pos.X_POINT = robot_pos.X_POINT + ((DRIVING_ELAPSED_TIME /100)+AVG_BRAKING_DISTANCE) * sinf(robot_pos.ANGLE * (M_PI / 180.0f));
-	robot_pos.Y_POINT = robot_pos.Y_POINT + ((DRIVING_ELAPSED_TIME /100)+AVG_BRAKING_DISTANCE) * cosf(robot_pos.ANGLE * (M_PI / 180.0f));
+	robot_pos.X_POINT = robot_pos.X_POINT + (int16_t)(((CM_PER_MS * DRIVING_ELAPSED_TIME) + AVG_BRAKING_DISTANCE) * sinf(robot_pos.ANGLE * (M_PI / 180.0f)));
+	robot_pos.Y_POINT = robot_pos.Y_POINT + (int16_t)(((CM_PER_MS * DRIVING_ELAPSED_TIME) + AVG_BRAKING_DISTANCE) * cosf(robot_pos.ANGLE * (M_PI / 180.0f)));
 
 	int16_t COORD_X = robot_pos.X_POINT + (int16_t)(IR_SENSOR_DISTANCE * sinf(robot_pos.ANGLE * (M_PI / 180.0f)));
 	int16_t COORD_Y = robot_pos.Y_POINT + (int16_t)(IR_SENSOR_DISTANCE * cosf(robot_pos.ANGLE * (M_PI / 180.0f)));
