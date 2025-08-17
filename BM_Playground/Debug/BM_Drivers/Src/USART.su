@@ -2,4 +2,4 @@
 ../BM_Drivers/Src/USART.c:64:6:USART_INIT	24	static
 ../BM_Drivers/Src/USART.c:111:9:USART_GetFlagStatus	16	static
 ../BM_Drivers/Src/USART.c:122:6:USART_SendData	32	static
-../BM_Drivers/Src/USART.c:171:6:USART_ReceiveData	32	static
+../BM_Drivers/Src/USART.c:172:6:USART_ReceiveData	32	static

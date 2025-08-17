@@ -9,6 +9,7 @@
 #include "TIMER.h"
 #include "MOVEMENT.h"
 #include "GPIO.h"
+#include "I2C.h"
 
 
 #define DRV8833_FREQ	20000
@@ -16,19 +17,14 @@
 #define TURN_TIME_MAX 200
 #define TIMER_DELAY 100
 
+#define GYRO_SENS_500DPS 65.5f
+
 
 //USE A TIMER TO SEED!!!
 void seed_random(uint32_t seed_value) {
 	srand(seed_value);
 }
 
-uint8_t calc_turn_time(){
-	//notice min max values
-	//rand needs to be seeded
-	uint8_t turn_time_ms = (rand() % (200 - 50 + 1)) + 50;
-	//50-200 ms angular_speed = ct degrees/ms
-	return turn_time_ms;
-}
 
 uint8_t choose_direction(){
 	//notice min max values
@@ -69,6 +65,28 @@ void drive_FWD(GP_TIM_Handle_t *pGP_TIM_Handle){
 }
 
 void stop_FWD(GP_TIM_Handle_t *pGP_TIM_Handle){
+
+	pGP_TIM_Handle->pTIMx->CCER = 0;
+	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, DISABLE);
+
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,GND);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH3,GND);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH2,PWM_OUTPUT);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,PWM_OUTPUT);
+
+
+	// Enable CH1, CH3
+	pGP_TIM_Handle->pTIMx->CCER |= (1 << (4 * CH2)) | (1 << (4 * CH4));
+
+	// Disable CH2, CH4
+	pGP_TIM_Handle->pTIMx->CCER &= ~((1 << (4 * CH1)) | (1 << (4 * CH3)));
+
+
+	pGP_TIM_Handle->pTIMx->EGR |= (1 << 0);
+
+	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, ENABLE);//connected to sleep
+
+	ms_delay(5);
 
 	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, DISABLE);
 

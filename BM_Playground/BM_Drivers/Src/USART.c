@@ -160,6 +160,7 @@ void USART_SendData(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint32_t L
 			//Implement the code to increment the buffer address
 			pTxBuffer++;
 		}
+		ms_delay(10);
 
 	}
 

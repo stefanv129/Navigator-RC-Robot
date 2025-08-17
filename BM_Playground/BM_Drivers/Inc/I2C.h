@@ -119,6 +119,7 @@ typedef struct
 
 void I2C_SM_INIT(I2C_Handle_t *pI2C_Handle);
 uint8_t I2C_Master_Read_Reg(I2C_RegDef_t *pI2Cx, uint8_t slaveAddr, uint8_t regAddr);
+void I2C_Master_Write_Reg(I2C_RegDef_t *pI2Cx, uint8_t slaveAddr, uint8_t regAddr, uint8_t data);
 
 void I2C_ManageAcking(I2C_RegDef_t *pI2Cx, uint8_t EnorDi);
 void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle,uint8_t *pRxBuffer, uint8_t Len, uint8_t SlaveAddr,uint8_t Sr);

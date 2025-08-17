@@ -55,10 +55,18 @@ GP_TIM_Handle_t TIM2_PWM;
 AD_TIM_Handle_t TIM1_TMR;
 I2C_Handle_t I2C1_RX;
 USART_Handle_t USART1_TXRX;
+SPI_Handle_t SPI1_MPU;
 
-int16_t X_POINT = 0; //current X
-int16_t Y_POINT = 0; //current Y
-float ANGLE = 270;
+typedef struct {
+	int16_t X_POINT ;       // cm
+	int16_t Y_POINT ;       // cm
+	float ANGLE; // degrees (0–360)
+} Position_t;
+
+volatile Position_t robot_pos = {0, 0, 90.0f};
+
+
+volatile float ANG_VELOCITY_MS = 0;
 uint8_t INCREMENT = 0;
 volatile uint16_t DRIVING_START_TIME = 0;  // global
 volatile uint16_t DRIVING_ELAPSED_TIME = 0;  // global
@@ -79,7 +87,17 @@ void Full_GP_TIM_Config(void);
 void Full_AD_TIM_Config(void);
 void Full_I2C_Config(void);
 void Full_USART_Config(void);
+void Full_SPI_Config(void);
 uint16_t get_elapsed_time(AD_TIM_RegDef_t *pTIMx, uint16_t start);
+
+
+void ms_delay(uint32_t time_ms) {
+	for(volatile uint32_t i = 0; i < time_ms * 1055; ++i) {
+		__asm__("nop");
+	}
+}
+
+
 
 void init_random_seed(void) {
 	srand(TIM1_TMR.pTIMx->CNT);  // Seed with x,y coords/angle
@@ -90,15 +108,6 @@ uint16_t get_random_direction(void) {
 	//what is maximum rand value?
 }
 
-uint16_t calc_rotation(uint32_t duration_ms, float angular_velocity_dps) {
-	return (uint16_t)((duration_ms / 1000.0f) * angular_velocity_dps);  // degrees = time * speed
-}
-
-void ms_delay(uint32_t time_ms) {
-	for(volatile uint32_t i = 0; i < time_ms * 1055; ++i) {
-		__asm__("nop");
-	}
-}
 
 uint16_t get_current_time(AD_TIM_RegDef_t *pTIMx)
 {
@@ -117,13 +126,27 @@ uint16_t get_elapsed_time(AD_TIM_RegDef_t *pTIMx, uint16_t start)
 	} else {
 		elapsed = (0xFFFF - start) + now + 1; // handle overflow
 	}
-	return elapsed - 25;//error
+	return elapsed;//error
 }
 
 
 uint8_t password = 0;
 uint8_t coords_nr = 100;
 uint8_t count = 0;
+float gyro_z_bias = 0.0f;
+volatile uint16_t last_angle_update_time = 0;
+
+uint8_t AVG_BRAKING_DISTANCE = 0;
+uint8_t IR_SENSOR_DISTANCE = 0;
+//WHAT UNITS?
+
+
+#define MPU_ADDR 0x68
+#define GYRO_ZOUT_H 0x47
+#define GYRO_ZOUT_L 0x48
+#define GYRO_SENS_500DPS 65.5f // for FS_SEL=1
+
+
 
 void send_coordinates()
 {
@@ -134,11 +157,14 @@ void send_coordinates()
 	//X_POINT = X_POINT + DRIVING_ELAPSED_TIME * speed * sinf(ANGLE * (M_PI / 180.0f);
 	//X_POINT = Y_POINT + DRIVING_ELAPSED_TIME * speed * cosf(ANGLE * (M_PI / 180.0f);
 
-	X_POINT = X_POINT + (DRIVING_ELAPSED_TIME /100) * sinf(ANGLE * (M_PI / 180.0f));
-	Y_POINT = Y_POINT + (DRIVING_ELAPSED_TIME /100) * cosf(ANGLE * (M_PI / 180.0f));
+	//DRIVING_ELAPSED_TIME is in ms
+	//will have to modify here later once the speed of driving is measured
 
-	int16_t COORD_X = X_POINT + (int16_t)(7.0f * sinf(ANGLE * (M_PI / 180.0f)));
-	int16_t COORD_Y = Y_POINT + (int16_t)(7.0f * cosf(ANGLE * (M_PI / 180.0f)));
+	robot_pos.X_POINT = robot_pos.X_POINT + ((DRIVING_ELAPSED_TIME /100)+AVG_BRAKING_DISTANCE) * sinf(robot_pos.ANGLE * (M_PI / 180.0f));
+	robot_pos.Y_POINT = robot_pos.Y_POINT + ((DRIVING_ELAPSED_TIME /100)+AVG_BRAKING_DISTANCE) * cosf(robot_pos.ANGLE * (M_PI / 180.0f));
+
+	int16_t COORD_X = robot_pos.X_POINT + (int16_t)(IR_SENSOR_DISTANCE * sinf(robot_pos.ANGLE * (M_PI / 180.0f)));
+	int16_t COORD_Y = robot_pos.Y_POINT + (int16_t)(IR_SENSOR_DISTANCE * cosf(robot_pos.ANGLE * (M_PI / 180.0f)));
 
 
 	DRIVING_ELAPSED_TIME = 0;
@@ -165,7 +191,33 @@ void send_coordinates()
 
 }
 
+void calc_angle(){
+	float current_dps = MPU6500_Read_GyroZ_DPS() - gyro_z_bias;
+	uint16_t current_time = get_current_time(TIM1);
+	float delta_t_ms = get_elapsed_time(TIM1, last_angle_update_time);
+	last_angle_update_time = current_time;
 
+	float delta_t_s = delta_t_ms / 1000.0f;
+
+	ANG_VELOCITY_MS = current_dps;
+
+	float angle_change = current_dps * delta_t_s;
+
+	robot_pos.ANGLE += angle_change;
+
+	robot_pos.ANGLE = fmodf(robot_pos.ANGLE, 360.0f);
+	if (robot_pos.ANGLE < 0) robot_pos.ANGLE += 360.0f;
+}
+
+void MPU6500_Calibrate(void) {
+	long sum = 0;
+	int samples = 200;
+	for (int i = 0; i < samples; i++) {
+		sum += MPU6500_Read_GyroZ_DPS();
+		ms_delay(5);
+	}
+	gyro_z_bias = (float)sum / samples;
+}
 
 
 int main(void) {
@@ -177,8 +229,11 @@ int main(void) {
 	Full_GPIO_Config();
 	Full_GP_TIM_Config();
 	Full_USART_Config();
-	Full_I2C_Config();
+	Full_SPI_Config();
 	init_random_seed();
+
+	MPU6500_Init();
+	MPU6500_Calibrate();
 	ms_delay(500);
 
 
@@ -198,28 +253,21 @@ int main(void) {
 			}
 		}
 
-		if(calc_angle_flag){
-			//use ELAPSED TIME and angular_velocity to calc angle
-			//calc_angle();
-			calc_angle_flag = 0;
-			DRIVING_START_TIME = get_current_time(TIM1);
-			DRIVING_ELAPSED_TIME = 0;
-		}
-
 		if(current_state == STATE_DRIVING)
 		{
-			//float accel_g = raw_accel / 16384.0f;  // if FSR = ±2g
-			//INCREMENT = accel_g  * 50 ms
-			//			INCREMENT = 1;
-			//			float angle_rad = ANGLE * (M_PI / 180.0f);
-			//			X_POINT += (int16_t)(INCREMENT * sinf(angle_rad));
-			//			Y_POINT += (int16_t)(INCREMENT * cosf(angle_rad));
-			//every 50 ms
+			//TOGGLE_SLEEP_PIN();//to slow down car
+			//really bad solution but necessary
+			GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,ENABLE);
 		}
 		else if(current_state == STATE_TURNING)
 		{
-			//float gyro_dps = raw_gyro / 65.5f;  // if FSR = ±500°/s
-			//angular_velocity = read_w_gyro(); => Z, last 2 bytes of the 6 read
+			calc_angle();
+			TOGGLE_SLEEP_PIN();//to slow down car
+			//really bad solution but necessary
+			GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,DISABLE);
+
+
+
 		}
 		else if(current_state == STATE_IDLE)
 		{
@@ -231,14 +279,9 @@ int main(void) {
 			{
 				//START CONDITION basically
 				current_state = STATE_DRIVING;
-				//char msg[32];
 				drive_FWD(&TIM2_PWM);
-//				sprintf(msg, "Navigation Started");
-//				USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
-				//measure acceleration here??
 				DRIVING_START_TIME = get_current_time(TIM1);
-//				sprintf(msg, "StartedDrivingAt %u\r\n", DRIVING_START_TIME);
-//				USART_SendData(&USART1_TXRX, (uint8_t*)msg, strlen(msg));
+
 				GPIO_IRQInterruptConfig(EXTI4_IRQ, ENABLE);
 			}
 		}
@@ -246,14 +289,8 @@ int main(void) {
 		{
 
 		}
+		ms_delay(30);
 
-		ms_delay(50);
-
-		//uint16_t current_time = get_current_time(TIM1);
-		//	    char time_msg[32];
-		//
-		//	    // Add \r\n for proper line break
-		//	    sprintf(time_msg, "TIM1 CNT: %u\r\n", current_time);
 	}
 	return 0;
 }
@@ -262,72 +299,54 @@ int main(void) {
 
 void EXTI4_IRQHandler(void) //WALL SENSED
 {
-	//GPIO_IRQInterruptConfig(EXTI4_IRQ, DISABLE);
+	stop_FWD(&TIM2_PWM);
+	if(wall_sensed){
+		calc_angle();
+		ms_delay(50);
+		calc_angle();
+	}
+	ms_delay(200);
 
 	if(!GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4)){
-		GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,DISABLE);
 		wall_sensed = 1;
-//		char msg2[32];
-//		sprintf(msg2, "StoppedDrivingAt %u\r\n", get_current_time(TIM1));
-//		USART_SendData(&USART1_TXRX, (uint8_t*)msg2, strlen(msg2));
-		stop_FWD(&TIM2_PWM);//driving stops here
-		DRIVING_ELAPSED_TIME = get_elapsed_time(TIM1, DRIVING_START_TIME);//how long driving took place
-//		sprintf(msg2, "DroveFor %u\r\n", DRIVING_ELAPSED_TIME);
-//		USART_SendData(&USART1_TXRX, (uint8_t*)msg2, strlen(msg2));
+		DRIVING_ELAPSED_TIME = get_elapsed_time(TIM1, (DRIVING_START_TIME+200));//how long driving took place
 
 		send_coordinates();
-		ms_delay(200);
+		ms_delay(400);
 
 		current_state = STATE_TURNING;
-		calc_angle_flag = 0;
 		TURNING_ELAPSED_TIME = 0;
 		uint16_t turn_dir = get_random_direction();
-//		sprintf(msg2, "RandomDir: %u\r\n", (uint16_t)turn_dir);
-//		USART_SendData(&USART1_TXRX, (uint8_t*)msg2, strlen(msg2));
-
 		if(!(turn_dir % 2))
 		{
-			direction_state = TURNING_RIGHT;
 			turn_RGT(&TIM2_PWM);
 		}
 		else
 		{
-			direction_state = TURNING_LEFT;
 			turn_LFT(&TIM2_PWM);
 		}
-		TURNING_START_TIME = get_current_time(TIM1);
-//		sprintf(msg2, "StartedTurningAt %u\r\n", TURNING_START_TIME);
-//		USART_SendData(&USART1_TXRX, (uint8_t*)msg2, strlen(msg2));
+		last_angle_update_time = get_current_time(TIM1);
+
+		//calc_angle();
+		//measure real median value and hardcode here
 	}
 	else{
+		//turning stops here
 		if(wall_sensed){
 			wall_sensed = 0;
-			//char msg3[32];
-			stop_FWD(&TIM2_PWM);//turning stops here
-//			sprintf(msg3, "StoppedTurningAt %u\r\n", get_current_time(TIM1));
-//			USART_SendData(&USART1_TXRX, (uint8_t*)msg3, strlen(msg3));
-			TURNING_ELAPSED_TIME = get_elapsed_time(TIM1,TURNING_START_TIME);
-//			sprintf(msg3, "TurnedFor %u\r\n", TURNING_ELAPSED_TIME);
-//			USART_SendData(&USART1_TXRX, (uint8_t*)msg3, strlen(msg3));
-
-			//calc_angle();
-			//calc angle using TURNING_ELAPSED_TIME & angular_velocity, some error is expected
-
-			ms_delay(500);
+			last_angle_update_time+=250;
+			calc_angle();
+			//TURNING_ELAPSED_TIME = get_elapsed_time(TIM1,(TURNING_START_TIME+250));
+			ms_delay(400);
 
 			current_state = STATE_DRIVING;
 			DRIVING_START_TIME = get_current_time(TIM1);
 			drive_FWD(&TIM2_PWM);
-//			sprintf(msg3, "StartedDrivingAt %u\r\n", DRIVING_START_TIME);
-//			USART_SendData(&USART1_TXRX, (uint8_t*)msg3, strlen(msg3));
-			GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,ENABLE);
+		}else{
+			drive_FWD(&TIM2_PWM);
 		}
 	}
 	GPIO_IRQHandling(GPIO_PIN_NO_4);
-	//GPIO_IRQInterruptConfig(EXTI4_IRQ, ENABLE);
-
-	//SHOULD ADD FLAGS FOR SAFETY => TURNING/DRIVING STARTED = 1
-
 }
 
 void Full_RCC_Config(void){
@@ -431,25 +450,64 @@ void Full_GPIO_Config(void){
 	GpioCH1.GPIO_PinConfig.GPIO_PinAltFunMode = 1;  // AF1 for TIM2_PWM
 	GpioCH1.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
-	// GPIO Configuration for SDA (PB6)
-	GPIO_Handle_t GpioSCL;
-	GpioSCL.pGPIOx = GPIOB;
-	GpioSCL.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_6;
-	GpioSCL.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
-	GpioSCL.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
-	GpioSCL.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
-	GpioSCL.GPIO_PinConfig.GPIO_PinAltFunMode = 4;  // AF4 for I2C1_sCL
-	GpioSCL.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
-	// GPIO Configuration for SCL (PB7)
-	GPIO_Handle_t GpioSDA;
-	GpioSDA.pGPIOx = GPIOB;
-	GpioSDA.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_7;
-	GpioSDA.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
-	GpioSDA.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;  // Set higher speed for PWM
-	GpioSDA.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
-	GpioSDA.GPIO_PinConfig.GPIO_PinAltFunMode = 4;  // AF4 for I2C1_sDA
-	GpioSDA.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+
+	/**SPI CONFIG**/
+
+	// SCK (PA5)
+	GPIO_Handle_t GpioSCK;
+	GpioSCK.pGPIOx = GPIOA;
+	GpioSCK.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_5;
+	GpioSCK.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
+	GpioSCK.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
+	GpioSCK.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	GpioSCK.GPIO_PinConfig.GPIO_PinAltFunMode = 5; // AF5 for SPI1
+	GpioSCK.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+
+	// MISO (PA6)
+	GPIO_Handle_t GpioMISO;
+	GpioMISO.pGPIOx = GPIOA;
+	GpioMISO.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_6;
+	GpioMISO.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
+	GpioMISO.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
+	GpioMISO.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	GpioMISO.GPIO_PinConfig.GPIO_PinAltFunMode = 5;
+	GpioMISO.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+
+
+	// MOSI (PA7)
+	GPIO_Handle_t GpioMOSI;
+	GpioMOSI.pGPIOx = GPIOA;
+	GpioMOSI.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_7;
+	GpioMOSI.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
+	GpioMOSI.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
+	GpioMOSI.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	GpioMOSI.GPIO_PinConfig.GPIO_PinAltFunMode = 5;
+	GpioMOSI.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+
+
+	//	// NSS (PA15)
+	//	GPIO_Handle_t GpioNSS;
+	//	GpioNSS.pGPIOx = GPIOA;
+	//	GpioNSS.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_15;
+	//	GpioNSS.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ALTFN;
+	//	GpioNSS.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
+	//	GpioNSS.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	//	GpioNSS.GPIO_PinConfig.GPIO_PinAltFunMode = 5; // AF5 for SPI1
+	//	GpioNSS.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+
+
+	// NSS / CS (PA15) - Manual GPIO
+	GPIO_Handle_t GpioCS;
+	GpioCS.pGPIOx = GPIOA;
+	GpioCS.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_15;
+	GpioCS.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_OUT;
+	GpioCS.GPIO_PinConfig.GPIO_PinSpeed = GPIO_SPEED_HIGH;
+	GpioCS.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	GpioCS.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_NO_PUPD;
+
+
+	/**SPI CONFIG**/
 
 	// Initialize GPIO
 	GPIO_Init(&GpioLED); //turns led on
@@ -458,11 +516,13 @@ void Full_GPIO_Config(void){
 	GPIO_Init(&GpioCH2);
 	GPIO_Init(&GpioCH1);
 	GPIO_Init(&GpioCH4);
-	GPIO_Init(&GpioSCL);
-	GPIO_Init(&GpioSDA);
+	GPIO_Init(&GpioSCK);
+	GPIO_Init(&GpioMISO);
+	GPIO_Init(&GpioMOSI);
+	GPIO_Init(&GpioCS);
+	//GPIO_Write_Pin(GPIOA, GPIO_PIN_NO_15, ENABLE);
 	GPIO_Init(&GpioTX);
 	GPIO_Init(&GpioRX);
-
 	GPIO_Init(&GpioSleep);
 
 	//GPIO_IRQInterruptConfig(EXTI15_10_IRQ, ENABLE);
@@ -506,10 +566,19 @@ void Full_AD_TIM_Config(void){
 }
 
 
-void Full_I2C_Config(void){
-	I2C1_RX.I2C_Config.I2C_AckControl = 1;
-	I2C1_RX.I2C_Config.I2C_SCLSpeed = 100000;
-	I2C_SM_INIT(&I2C1_RX);
+
+void Full_SPI_Config(void){
+	SPI1_MPU.pSPIx = SPI1;
+	SPI1_MPU.SPIConfig.SPI_DeviceMode = SPI_DEVICE_MODE_MASTER;
+	SPI1_MPU.SPIConfig.SPI_CPHA = SPI_CPHA_LOW;
+	SPI1_MPU.SPIConfig.SPI_CPOL = SPI_CPOL_LOW;;
+	SPI1_MPU.SPIConfig.SPI_DFF = SPI_DFF_8BITS;
+	SPI1_MPU.SPIConfig.SPI_BusConfig = SPI_BUS_CONFIG_FD;
+	SPI1_MPU.SPIConfig.SPI_SSM = SPI_SSM_EN; // SSM = 1
+	SPI1_MPU.SPIConfig.SPI_SclkSpeed = SPI_SCLK_SPEED_DIV8;
+	SPI_Init(&SPI1_MPU);
+
+
 }
 
 void Full_USART_Config(void){

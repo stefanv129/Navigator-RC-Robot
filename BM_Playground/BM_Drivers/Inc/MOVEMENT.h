@@ -12,6 +12,12 @@
 #include <stdlib.h> //for rand()
 #include "STM32F4.h"
 #include "TIMER.h"
+#include "SPI.h"
+
+#include <math.h>
+
+
+#define TOGGLE_SLEEP_PIN()	GPIO_Toggle_Pin(GPIOB, GPIO_PIN_NO_15);
 
 typedef struct {
     GPIO_RegDef_t *Port;
@@ -37,20 +43,6 @@ void turn_RGT(GP_TIM_Handle_t *pGP_TIM_Handle);
 void turn_LFT(GP_TIM_Handle_t *pGP_TIM_Handle);
 void stop_FWD(GP_TIM_Handle_t *pGP_TIM_Handle);
 
-//typedef enum {
-//    SEARCH_STATE,
-//    TURN_STATE,
-//    IDLE_STATE
-//} RobotState_t;
-//
-//volatile RobotState_t current_state = IDLE_STATE;
-//
-//typedef struct {
-//    float x;
-//    float y;
-//    float heading_deg;
-//} Position_t;
-//
-//volatile Position_t current_pos;
+
 
 #endif /* INC_DRV8833_H_ */

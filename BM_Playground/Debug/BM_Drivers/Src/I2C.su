@@ -7,7 +7,8 @@
 ../BM_Drivers/Src/I2C.c:103:6:I2C_PeriClockControl	16	static
 ../BM_Drivers/Src/I2C.c:118:6:I2C_SM_INIT	24	static
 ../BM_Drivers/Src/I2C.c:141:9:I2C_Master_Read_Reg	16	static
-../BM_Drivers/Src/I2C.c:207:9:I2C_GetFlagStatus	16	static
-../BM_Drivers/Src/I2C.c:216:6:I2C_MasterSendData	24	static
-../BM_Drivers/Src/I2C.c:262:6:I2C_MasterReceiveData	32	static
-../BM_Drivers/Src/I2C.c:344:6:I2C_ManageAcking	16	static
+../BM_Drivers/Src/I2C.c:186:6:I2C_Master_Write_Reg	16	static
+../BM_Drivers/Src/I2C.c:214:9:I2C_GetFlagStatus	16	static
+../BM_Drivers/Src/I2C.c:223:6:I2C_MasterSendData	24	static
+../BM_Drivers/Src/I2C.c:269:6:I2C_MasterReceiveData	32	static
+../BM_Drivers/Src/I2C.c:351:6:I2C_ManageAcking	16	static

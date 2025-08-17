@@ -2,6 +2,7 @@
 "./BM_Drivers/Src/I2C.o"
 "./BM_Drivers/Src/MOVEMENT.o"
 "./BM_Drivers/Src/RCC.o"
+"./BM_Drivers/Src/SPI.o"
 "./BM_Drivers/Src/TIMER.o"
 "./BM_Drivers/Src/USART.o"
 "./Src/main.o"
