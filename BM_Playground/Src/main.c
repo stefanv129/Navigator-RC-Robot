@@ -83,7 +83,7 @@ float gyro_z_bias = 0.0f;
 volatile uint16_t last_angle_update_time = 0;
 uint8_t AVG_BRAKING_DISTANCE = 20;//cm
 uint8_t IR_SENSOR_DISTANCE = 5;//cm
-float CM_PER_MS = 0.09f; //average measured speed, considering acceleration almost instantanous
+float CM_PER_MS = 0.085f; //average measured speed, considering acceleration almost instantanous
 
 
 
@@ -152,16 +152,19 @@ uint16_t get_elapsed_time(AD_TIM_RegDef_t *pTIMx, uint16_t start)
 void send_coordinates()
 {
 	//DRIVING_ELAPSED_TIME is in ms
+	robot_pos.X_POINT = robot_pos.X_POINT + (int16_t)(((CM_PER_MS * DRIVING_ELAPSED_TIME) + AVG_BRAKING_DISTANCE)
+			* sinf(robot_pos.ANGLE * (M_PI / 180.0f)));
+	robot_pos.Y_POINT = robot_pos.Y_POINT + (int16_t)(((CM_PER_MS * DRIVING_ELAPSED_TIME) + AVG_BRAKING_DISTANCE)
+			* cosf(robot_pos.ANGLE * (M_PI / 180.0f)));
+	int16_t COORD_X = robot_pos.X_POINT + (int16_t)(IR_SENSOR_DISTANCE
+			* sinf(robot_pos.ANGLE * (M_PI / 180.0f)));
+	int16_t COORD_Y = robot_pos.Y_POINT + (int16_t)(IR_SENSOR_DISTANCE
+			* cosf(robot_pos.ANGLE * (M_PI / 180.0f)));
 
-	robot_pos.X_POINT = robot_pos.X_POINT + (int16_t)(((CM_PER_MS * DRIVING_ELAPSED_TIME) + AVG_BRAKING_DISTANCE) * sinf(robot_pos.ANGLE * (M_PI / 180.0f)));
-	robot_pos.Y_POINT = robot_pos.Y_POINT + (int16_t)(((CM_PER_MS * DRIVING_ELAPSED_TIME) + AVG_BRAKING_DISTANCE) * cosf(robot_pos.ANGLE * (M_PI / 180.0f)));
 
-	int16_t COORD_X = robot_pos.X_POINT + (int16_t)(IR_SENSOR_DISTANCE * sinf(robot_pos.ANGLE * (M_PI / 180.0f)));
-	int16_t COORD_Y = robot_pos.Y_POINT + (int16_t)(IR_SENSOR_DISTANCE * cosf(robot_pos.ANGLE * (M_PI / 180.0f)));
-
-
-	DRIVING_ELAPSED_TIME = 0;
-	DRIVING_START_TIME = 0;
+	COORD_X = DRIVING_ELAPSED_TIME;
+	COORD_Y = robot_pos.ANGLE;
+	//DRIVING_START_TIME = 0;
 
 	//Build packet
 	uint8_t data[5];
@@ -169,19 +172,18 @@ void send_coordinates()
 
 	data[1] = (uint8_t)((COORD_X >> 8) & 0xFF); // X high byte
 	data[2] = (uint8_t)(COORD_X & 0xFF);        // X low byte
-
 	data[3] = (uint8_t)((COORD_Y >> 8) & 0xFF); // Y high byte
 	data[4] = (uint8_t)(COORD_Y & 0xFF);        // Y low byte
 
 	// Send 5 bytes over USART
 	USART_SendData(&USART1_TXRX, data, 5);
 
+	DRIVING_ELAPSED_TIME = 0;
 	count++;
-
 	if(count >= coords_nr){
 		stop_flag = 1;
+		TIM2_PCLK_DS();
 	}
-
 }
 
 void calc_angle(){
@@ -189,15 +191,10 @@ void calc_angle(){
 	uint16_t current_time = get_current_time(TIM1);
 	float delta_t_ms = get_elapsed_time(TIM1, last_angle_update_time);
 	last_angle_update_time = current_time;
-
 	float delta_t_s = delta_t_ms / 1000.0f;
-
 	ANG_VELOCITY_MS = current_dps;
-
 	float angle_change = current_dps * delta_t_s;
-
 	robot_pos.ANGLE += angle_change;
-
 	robot_pos.ANGLE = fmodf(robot_pos.ANGLE, 360.0f);
 	if (robot_pos.ANGLE < 0) robot_pos.ANGLE += 360.0f;
 }
@@ -215,7 +212,7 @@ void MPU6500_Calibrate(void) {
 
 int main(void) {
 
-	//while(1);
+
 
 	Full_RCC_Config();
 	Full_AD_TIM_Config();
@@ -229,38 +226,35 @@ int main(void) {
 	MPU6500_Calibrate();
 	ms_delay(500);
 
+//	drive_FWD(&TIM2_PWM);
+//	ms_delay(1000);
+//	stop_FWD(&TIM2_PWM);
+	//while(1);
 
 	while (1)
 	{
-
 		if(stop_flag){
 			stop_FWD(&TIM2_PWM);
 			current_state = STATE_IDLE;
 			GPIO_IRQInterruptConfig(EXTI4_IRQ, DISABLE);
-
-
 			for(volatile int i = 0; i < 10; i++)
 			{
 				GPIO_Toggle_Pin(GPIOC, GPIO_PIN_NO_13);
 				ms_delay(200);
 			}
+			TIM2_PCLK_EN();
 		}
 
 		if(current_state == STATE_DRIVING)
 		{
-			//TOGGLE_SLEEP_PIN();//to slow down car
-			//really bad solution but necessary
 			GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,ENABLE);
+			calc_angle();
 		}
 		else if(current_state == STATE_TURNING)
 		{
 			calc_angle();
 			TOGGLE_SLEEP_PIN();//to slow down car
-			//really bad solution but necessary
 			GPIO_Write_Pin(GPIOC,GPIO_PIN_NO_13,DISABLE);
-
-
-
 		}
 		else if(current_state == STATE_IDLE)
 		{
@@ -270,21 +264,18 @@ int main(void) {
 			ms_delay(50);
 			if(password == START_PSW)
 			{
-				//START CONDITION basically
+				//START CONDITION
 				current_state = STATE_DRIVING;
-				drive_FWD(&TIM2_PWM);
 				DRIVING_START_TIME = get_current_time(TIM1);
-
+				last_angle_update_time = get_current_time(TIM1);
+				drive_FWD(&TIM2_PWM);
 				GPIO_IRQInterruptConfig(EXTI4_IRQ, ENABLE);
 			}
 		}
-		else if(current_state == STATE_STOPPED)
-		{
-
-		}
-		ms_delay(30);
-
+		ms_delay(20);
 	}
+
+
 	return 0;
 }
 
@@ -295,21 +286,23 @@ void EXTI4_IRQHandler(void) //WALL SENSED
 	stop_FWD(&TIM2_PWM);
 	if(wall_sensed){
 		calc_angle();
-		ms_delay(50);
+		ms_delay(20);
+		calc_angle();
+		ms_delay(20);
 		calc_angle();
 	}
-	ms_delay(200);
+	ms_delay(210);
 
 	if(!GPIO_Read_Pin(GPIOA, GPIO_PIN_NO_4)){
 		wall_sensed = 1;
-		DRIVING_ELAPSED_TIME = get_elapsed_time(TIM1, (DRIVING_START_TIME+200));//how long driving took place
+		DRIVING_ELAPSED_TIME = get_elapsed_time(TIM1, (DRIVING_START_TIME+250));//how long driving took place
 
 		send_coordinates();
 		ms_delay(400);
 
 		current_state = STATE_TURNING;
-		TURNING_ELAPSED_TIME = 0;
 		uint16_t turn_dir = get_random_direction();
+		last_angle_update_time = get_current_time(TIM1);
 		if(!(turn_dir % 2))
 		{
 			turn_RGT(&TIM2_PWM);
@@ -318,23 +311,19 @@ void EXTI4_IRQHandler(void) //WALL SENSED
 		{
 			turn_LFT(&TIM2_PWM);
 		}
-		last_angle_update_time = get_current_time(TIM1);
-
-		//calc_angle();
-		//measure real median value and hardcode here
+		calc_angle();
 	}
 	else{
 		//turning stops here
 		if(wall_sensed){
 			wall_sensed = 0;
-			last_angle_update_time+=250;
-			calc_angle();
-			//TURNING_ELAPSED_TIME = get_elapsed_time(TIM1,(TURNING_START_TIME+250));
 			ms_delay(400);
-
 			current_state = STATE_DRIVING;
 			DRIVING_START_TIME = get_current_time(TIM1);
+			last_angle_update_time = get_current_time(TIM1);
 			drive_FWD(&TIM2_PWM);
+			calc_angle();
+
 		}else{
 			drive_FWD(&TIM2_PWM);
 		}
@@ -530,19 +519,19 @@ void Full_GP_TIM_Config(void){
 
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].DutyCycle = 10;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH1].DutyCycle = 5;
 
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].DutyCycle = 10;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH2].DutyCycle = 5;
 
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].DutyCycle = 10;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH3].DutyCycle = 5;
 
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Enabled = ENABLE;
 	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].CH_Mode = PWM1;
-	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].DutyCycle = 10;
+	TIM2_PWM.GP_TIM_Config.CH_Setup[CH4].DutyCycle = 5;
 
 	// Initialize TIM2 + CHANNELS
 	GP_TIM_PWM_INIT(&TIM2_PWM);  // Initialize with CH1 disabled

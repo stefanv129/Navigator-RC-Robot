@@ -71,34 +71,35 @@ void stop_FWD(GP_TIM_Handle_t *pGP_TIM_Handle){
 
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,GND);
 	GP_TIM_PWM_Control(pGP_TIM_Handle,CH3,GND);
-	GP_TIM_PWM_Control(pGP_TIM_Handle,CH2,PWM_OUTPUT);
-	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,PWM_OUTPUT);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH2,GND);
+	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,GND);
 
 
 	// Enable CH1, CH3
-	pGP_TIM_Handle->pTIMx->CCER |= (1 << (4 * CH2)) | (1 << (4 * CH4));
+	pGP_TIM_Handle->pTIMx->CCER |= (1 << (4 * CH2)) | (1 << (4 * CH4))
+			|(1 << (4 * CH1)) | (1 << (4 * CH3));
 
 	// Disable CH2, CH4
-	pGP_TIM_Handle->pTIMx->CCER &= ~((1 << (4 * CH1)) | (1 << (4 * CH3)));
+//	pGP_TIM_Handle->pTIMx->CCER &= ~((1 << (4 * CH1)) | (1 << (4 * CH3)));
 
 
 	pGP_TIM_Handle->pTIMx->EGR |= (1 << 0);
 
 	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, ENABLE);//connected to sleep
 
-	ms_delay(5);
+	//ms_delay(5);
 
-	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, DISABLE);
-
-	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,PWM_STOP);
-	GP_TIM_PWM_Control(pGP_TIM_Handle,CH3,PWM_STOP);
-	GP_TIM_PWM_Control(pGP_TIM_Handle,CH2,PWM_STOP);
-	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,PWM_STOP);
-
-	pGP_TIM_Handle->pTIMx->CCER &= ~((1 << (4 * CH2)) | (1 << (4 * CH4)) | (1 << (4 * CH1)) | (1 << (4 * CH3)));
-
-	pGP_TIM_Handle->pTIMx->EGR |= (1 << 0);
-	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, ENABLE);
+//	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, DISABLE);
+//
+//	GP_TIM_PWM_Control(pGP_TIM_Handle,CH1,PWM_STOP);
+//	GP_TIM_PWM_Control(pGP_TIM_Handle,CH3,PWM_STOP);
+//	GP_TIM_PWM_Control(pGP_TIM_Handle,CH2,PWM_STOP);
+//	GP_TIM_PWM_Control(pGP_TIM_Handle,CH4,PWM_STOP);
+//
+//	pGP_TIM_Handle->pTIMx->CCER &= ~((1 << (4 * CH2)) | (1 << (4 * CH4)) | (1 << (4 * CH1)) | (1 << (4 * CH3)));
+//
+//	pGP_TIM_Handle->pTIMx->EGR |= (1 << 0);
+//	GPIO_Write_Pin(GPIOB, GPIO_PIN_NO_15, ENABLE);
 }
 
 void turn_RGT(GP_TIM_Handle_t *pGP_TIM_Handle){

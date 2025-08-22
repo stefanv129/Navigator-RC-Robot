@@ -370,7 +370,7 @@ void MPU6500_Init(void) {
 	// Configure sample rate divider
 	MPU6500_WriteReg(MPU6500_SMPLRT_DIV, 0x07);
 
-	MPU6500_WriteReg(MPU6500_GYRO_CONFIG, 0x08);
+	MPU6500_WriteReg(MPU6500_GYRO_CONFIG, 0x08);//0X00
 
 	MPU6500_WriteReg(MPU6500_ACCEL_CONFIG, 0x00);
 

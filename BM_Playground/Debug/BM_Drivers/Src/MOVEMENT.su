@@ -3,5 +3,5 @@
 ../BM_Drivers/Src/MOVEMENT.c:37:6:us_delay	24	static,ignoring_inline_asm
 ../BM_Drivers/Src/MOVEMENT.c:44:6:drive_FWD	16	static
 ../BM_Drivers/Src/MOVEMENT.c:67:6:stop_FWD	16	static
-../BM_Drivers/Src/MOVEMENT.c:104:6:turn_RGT	24	static
-../BM_Drivers/Src/MOVEMENT.c:122:6:turn_LFT	24	static
+../BM_Drivers/Src/MOVEMENT.c:105:6:turn_RGT	24	static
+../BM_Drivers/Src/MOVEMENT.c:123:6:turn_LFT	24	static

@@ -23,6 +23,9 @@
 
 #define TIM1_PCLK_EN()		(RCC->APB2ENR |= (1 << 0))
 #define TIM2_PCLK_EN()		(RCC->APB1ENR |= (1 << 0))
+
+#define TIM2_PCLK_DS()		(RCC->APB1ENR &= ~(1 << 0))
+
 #define TIM3_PCLK_EN()		(RCC->APB1ENR |= (1 << 1))
 
 

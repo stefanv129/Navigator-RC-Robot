@@ -29,27 +29,27 @@ void AD_TIM_Start_FreeRun(AD_TIM_RegDef_t *pTIMx, uint32_t time_ms) {
 
 
 void AD_TIM_FreeRun_INIT(AD_TIM_Handle_t *pAD_TIM_Handle) {
-    if (pAD_TIM_Handle->pTIMx == TIM1) {
-        TIM1_PCLK_EN();
-    }
+	if (pAD_TIM_Handle->pTIMx == TIM1) {
+		TIM1_PCLK_EN();
+	}
 
-    // Count up
-    pAD_TIM_Handle->pTIMx->CR1 &= ~TIM_CR1_DIR;
+	// Count up
+	pAD_TIM_Handle->pTIMx->CR1 &= ~TIM_CR1_DIR;
 
-    // Auto-Reload Preload
-    pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_ARPE;
+	// Auto-Reload Preload
+	pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_ARPE;
 
-    // Max ARR
-    pAD_TIM_Handle->pTIMx->ARR = 0xFFFF;
+	// Max ARR
+	pAD_TIM_Handle->pTIMx->ARR = 0xFFFF;
 
-    // Prescaler (set before calling or assign here)
-    pAD_TIM_Handle->pTIMx->PSC = pAD_TIM_Handle->AD_TIM_Config.Prescaler;
+	// Prescaler (set before calling or assign here)
+	pAD_TIM_Handle->pTIMx->PSC = pAD_TIM_Handle->AD_TIM_Config.Prescaler;
 
-    // Load PSC and ARR immediately
-    pAD_TIM_Handle->pTIMx->EGR |= TIM_EGR_UG;
+	// Load PSC and ARR immediately
+	pAD_TIM_Handle->pTIMx->EGR |= TIM_EGR_UG;
 
-    // Start free-running timer
-    pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_CEN;
+	// Start free-running timer
+	pAD_TIM_Handle->pTIMx->CR1 |= TIM_CR1_CEN;
 }
 
 //TIM2 exclusivelyy used for PWM outputs now
@@ -157,6 +157,13 @@ void GP_TIM_PWM_Control(GP_TIM_Handle_t *pGP_TIM_Handle, uint8_t channel, uint8_
 	else
 	{
 		//pGP_TIM_Handle->pTIMx->CCER &= ~ccer_mask; // Disable output
+		uint16_t duty = 100;
+		switch(channel) {
+		case CH1: pGP_TIM_Handle->pTIMx->CCR1 = duty; break;
+		case CH2: pGP_TIM_Handle->pTIMx->CCR2 = duty; break;
+		case CH3: pGP_TIM_Handle->pTIMx->CCR3 = duty; break;
+		case CH4: pGP_TIM_Handle->pTIMx->CCR4 = duty; break;
+		}
 	}
 
 

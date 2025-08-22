@@ -3,5 +3,5 @@ MOVEMENT.c:29:9:choose_direction	2
 MOVEMENT.c:37:6:us_delay	2
 MOVEMENT.c:44:6:drive_FWD	1
 MOVEMENT.c:67:6:stop_FWD	1
-MOVEMENT.c:104:6:turn_RGT	1
-MOVEMENT.c:122:6:turn_LFT	1
+MOVEMENT.c:105:6:turn_RGT	1
+MOVEMENT.c:123:6:turn_LFT	1
