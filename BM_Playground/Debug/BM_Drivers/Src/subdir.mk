@@ -6,7 +6,6 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../BM_Drivers/Src/GPIO.c \
-../BM_Drivers/Src/I2C.c \
 ../BM_Drivers/Src/MOVEMENT.c \
 ../BM_Drivers/Src/RCC.c \
 ../BM_Drivers/Src/SPI.c \
@@ -15,7 +14,6 @@ C_SRCS += \
 
 OBJS += \
 ./BM_Drivers/Src/GPIO.o \
-./BM_Drivers/Src/I2C.o \
 ./BM_Drivers/Src/MOVEMENT.o \
 ./BM_Drivers/Src/RCC.o \
 ./BM_Drivers/Src/SPI.o \
@@ -24,7 +22,6 @@ OBJS += \
 
 C_DEPS += \
 ./BM_Drivers/Src/GPIO.d \
-./BM_Drivers/Src/I2C.d \
 ./BM_Drivers/Src/MOVEMENT.d \
 ./BM_Drivers/Src/RCC.d \
 ./BM_Drivers/Src/SPI.d \
@@ -39,7 +36,7 @@ BM_Drivers/Src/%.o BM_Drivers/Src/%.su BM_Drivers/Src/%.cyclo: ../BM_Drivers/Src
 clean: clean-BM_Drivers-2f-Src
 
 clean-BM_Drivers-2f-Src:
-	-$(RM) ./BM_Drivers/Src/GPIO.cyclo ./BM_Drivers/Src/GPIO.d ./BM_Drivers/Src/GPIO.o ./BM_Drivers/Src/GPIO.su ./BM_Drivers/Src/I2C.cyclo ./BM_Drivers/Src/I2C.d ./BM_Drivers/Src/I2C.o ./BM_Drivers/Src/I2C.su ./BM_Drivers/Src/MOVEMENT.cyclo ./BM_Drivers/Src/MOVEMENT.d ./BM_Drivers/Src/MOVEMENT.o ./BM_Drivers/Src/MOVEMENT.su ./BM_Drivers/Src/RCC.cyclo ./BM_Drivers/Src/RCC.d ./BM_Drivers/Src/RCC.o ./BM_Drivers/Src/RCC.su ./BM_Drivers/Src/SPI.cyclo ./BM_Drivers/Src/SPI.d ./BM_Drivers/Src/SPI.o ./BM_Drivers/Src/SPI.su ./BM_Drivers/Src/TIMER.cyclo ./BM_Drivers/Src/TIMER.d ./BM_Drivers/Src/TIMER.o ./BM_Drivers/Src/TIMER.su ./BM_Drivers/Src/USART.cyclo ./BM_Drivers/Src/USART.d ./BM_Drivers/Src/USART.o ./BM_Drivers/Src/USART.su
+	-$(RM) ./BM_Drivers/Src/GPIO.cyclo ./BM_Drivers/Src/GPIO.d ./BM_Drivers/Src/GPIO.o ./BM_Drivers/Src/GPIO.su ./BM_Drivers/Src/MOVEMENT.cyclo ./BM_Drivers/Src/MOVEMENT.d ./BM_Drivers/Src/MOVEMENT.o ./BM_Drivers/Src/MOVEMENT.su ./BM_Drivers/Src/RCC.cyclo ./BM_Drivers/Src/RCC.d ./BM_Drivers/Src/RCC.o ./BM_Drivers/Src/RCC.su ./BM_Drivers/Src/SPI.cyclo ./BM_Drivers/Src/SPI.d ./BM_Drivers/Src/SPI.o ./BM_Drivers/Src/SPI.su ./BM_Drivers/Src/TIMER.cyclo ./BM_Drivers/Src/TIMER.d ./BM_Drivers/Src/TIMER.o ./BM_Drivers/Src/TIMER.su ./BM_Drivers/Src/USART.cyclo ./BM_Drivers/Src/USART.d ./BM_Drivers/Src/USART.o ./BM_Drivers/Src/USART.su
 
 .PHONY: clean-BM_Drivers-2f-Src
 

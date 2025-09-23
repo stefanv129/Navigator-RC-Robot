@@ -328,7 +328,7 @@ float MPU6500_Read_GyroZ_DPS(void) {
     MPU6500_ReadMultiReg_SPI(0x47, gyro_data, 2); // GYRO_ZOUT_H/L
 
     int16_t gyro_z_raw = (int16_t)((gyro_data[0] << 8) | gyro_data[1]);
-    return ((float)gyro_z_raw) / GYRO_SENS_500DPS;
+    return ((float)gyro_z_raw) / GYRO_SENS_1000DPS;
 }
 
 float MPU6500_Read_AccelX_G(void) {
@@ -370,7 +370,7 @@ void MPU6500_Init(void) {
 	// Configure sample rate divider
 	MPU6500_WriteReg(MPU6500_SMPLRT_DIV, 0x07);
 
-	MPU6500_WriteReg(MPU6500_GYRO_CONFIG, 0x08);//0X00
+	MPU6500_WriteReg(MPU6500_GYRO_CONFIG, 0x10);//0X00
 
 	MPU6500_WriteReg(MPU6500_ACCEL_CONFIG, 0x00);
 
