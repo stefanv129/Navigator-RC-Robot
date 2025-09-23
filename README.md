@@ -96,13 +96,13 @@ Status Update 17/08/2025:
 -the problem is the robot kit is not very well built and sometimes one wheel turns faster resulting in unwanted  strays
 -sensor also has a very narrow angle and robot is prettty bulky for its task
 -since tthe mpu6500 only measure acceleration the cars speed had to be measured manually
--I considered the acceleration to be instant, the car moves at 90cm/sec (average speed)
+-I considered the acceleration to be instant, the car moves at 70cm/sec (average speed)
 -this speed is used to calculate coordinates
--I managed to improve the braking by making the car reverse for 5ms before stopping
--aside from these hardware problems everything has been ttaken care of
+-aside from these hardware problems everything has been taken care of
 -this might be the last update if I cant fin anytthing else to improve on
 
 Status Update 23/09/2025:
+-got new higher voltage motors which allow for better braking and motor control
 -I am writing this way after the presentation from 11/09
 -project had a 9.20 grade, presentation was 8.20 so 8.70 overall
 -a lot of cleaning is neededed in the code
